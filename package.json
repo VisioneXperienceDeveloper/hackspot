@@ -1,0 +1,42 @@
+{
+  "name": "echo-investigation",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 4173",
+    "build": "tsc -b && vite build",
+    "test": "vitest run src",
+    "preview": "vite preview --host 127.0.0.1 --port 4173 --strictPort",
+    "test:e2e": "playwright test",
+    "typecheck": "tsc -b",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "npm run lint && npm run format:check && npm test && npm run build",
+    "test:hosting": "node scripts/verify-hosting.mjs"
+  },
+  "dependencies": {
+    "lucide-react": "^0.468.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.64.1",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "@vitejs/plugin-react": "^4.4.0",
+    "eslint": "^10.14.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.13.0",
+    "prettier": "^3.9.10",
+    "typescript": "~5.8.3",
+    "typescript-eslint": "^8.72.1",
+    "vite": "^6.3.0",
+    "vitest": "^4.1.12"
+  },
+  "engines": {
+    "node": ">=22.13.0"
+  }
+}
