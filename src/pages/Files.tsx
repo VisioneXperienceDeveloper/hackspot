@@ -17,6 +17,7 @@ import {
   ExternalLink,
   HardDrive,
   Home,
+  Trash2,
 } from 'lucide-react';
 import type { GameState } from '../game/engine';
 import {
@@ -27,19 +28,25 @@ import {
   type DesktopEntry,
   type FileAction,
 } from '../game/desktopFiles';
-import type { DesktopFileId } from '../game/noteFiles';
+import { DEFAULT_FOLDERS, type DesktopFileId } from '../game/noteFiles';
+import { appInfo, appOrder } from '../components/appInfo';
+import type { AppId } from '../components/Window';
 
 export function Files({
   state,
   folder,
   setFolder,
+  openApp,
   openFile,
+  moveToTrash,
   action,
 }: {
   state: GameState;
   folder: string;
   setFolder: (folder: string) => void;
+  openApp: (id: AppId) => void;
   openFile: (id: DesktopFileId) => void;
+  moveToTrash: (entry: DesktopEntry) => string;
   action: (action: FileAction, entry?: DesktopEntry) => void;
 }) {
   const [selection, setSelection] = useState<DesktopEntry | null>(null);
@@ -47,10 +54,18 @@ export function Files({
   const [future, setFuture] = useState<string[]>([]);
   const [query, setQuery] = useState('');
   const [list, setList] = useState(false);
+  const [actionError, setActionError] = useState('');
   const exists = (path: string) => path === '' || state.folders.includes(path);
   const backPaths = history.filter(exists);
   const forwardPaths = future.filter(exists);
   const files = desktopFiles(state);
+  const searchTerm = query.trim().toLocaleLowerCase();
+  const appShortcuts =
+    folder === 'desktop'
+      ? appOrder.filter((id) =>
+          `${appInfo[id].title} ${appInfo[id].keywords}`.toLocaleLowerCase().includes(searchTerm),
+        )
+      : [];
   const items = [
     ...state.folders
       .filter((path) => parentPath(path) === folder)
@@ -81,6 +96,7 @@ export function Files({
     setFuture([]);
     setSelection(null);
     setQuery('');
+    setActionError('');
     setFolder(path);
   }
   function open(entry: DesktopEntry) {
@@ -185,6 +201,26 @@ export function Files({
             <Move size={15} />
             <span>이동</span>
           </button>
+          <button
+            aria-label="휴지통으로 이동"
+            title={
+              selected?.entry.type === 'folder' && DEFAULT_FOLDERS.includes(selected.entry.path)
+                ? '기본 폴더는 삭제할 수 없습니다'
+                : '선택 항목을 휴지통으로 이동'
+            }
+            disabled={
+              !selected ||
+              (selected.entry.type === 'folder' && DEFAULT_FOLDERS.includes(selected.entry.path))
+            }
+            onClick={() => {
+              if (!selected) return;
+              const error = moveToTrash(selected.entry);
+              setActionError(error);
+            }}
+          >
+            <Trash2 size={15} />
+            <span>삭제</span>
+          </button>
           <label className="finder-search">
             <Search size={14} />
             <input
@@ -202,6 +238,24 @@ export function Files({
               <span>종류</span>
             </div>
           )}
+          {appShortcuts.map((id) => {
+            const { Icon, title } = appInfo[id];
+            return (
+              <button
+                key={`app:${id}`}
+                className="finder-item app"
+                aria-label={`${title} 앱 열기`}
+                title={`${title} 앱 열기`}
+                onClick={() => openApp(id)}
+              >
+                <span className="finder-item-icon">
+                  <Icon size={list ? 20 : 45} strokeWidth={1.3} />
+                </span>
+                <span className="finder-item-name">{title}</span>
+                <small>앱</small>
+              </button>
+            );
+          })}
           {items.map((item) => {
             const Icon =
               item.kind === 'folder'
@@ -225,7 +279,10 @@ export function Files({
                 className={`finder-item ${item.kind} ${selected?.key === item.key ? 'selected' : ''}`}
                 aria-label={item.name}
                 aria-pressed={selected?.key === item.key}
-                onClick={() => setSelection(item.entry)}
+                onClick={() => {
+                  setSelection(item.entry);
+                  setActionError('');
+                }}
                 onDoubleClick={() => open(item.entry)}
                 onKeyDown={(event) => {
                   if (event.key === 'Enter') {
@@ -242,13 +299,18 @@ export function Files({
               </button>
             );
           })}
-          {!items.length && (
+          {!items.length && !appShortcuts.length && (
             <div className="finder-empty">
               <FolderOpen size={38} />
               <span>{query ? '검색 결과가 없습니다.' : '이 폴더는 비어 있습니다.'}</span>
             </div>
           )}
         </div>
+        {actionError && (
+          <p className="finder-action-error" role="alert">
+            {actionError}
+          </p>
+        )}
         <footer className="finder-footer">
           <nav aria-label="현재 폴더 경로">
             <button aria-label="내 파일로" onClick={() => navigate('')}>
@@ -263,7 +325,7 @@ export function Files({
               </span>
             ))}
           </nav>
-          <span>{items.length}개 항목</span>
+          <span>{items.length + appShortcuts.length}개 항목</span>
         </footer>
       </div>
     </div>

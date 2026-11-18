@@ -12,6 +12,7 @@ import {
   Check,
 } from 'lucide-react';
 import { validFileName, validFolder, type NoteFile } from '../game/noteFiles';
+import { isSystemFileId } from '../game/systemFiles';
 import { parentPath, type DesktopFile } from '../game/desktopFiles';
 
 export function Notes({
@@ -93,7 +94,9 @@ export function SaveNoteForm({
 }) {
   const [name, setName] = useState(file?.name ?? sourceFile?.name ?? '메모.txt');
   const [folder, setFolder] = useState(
-    file?.folder ?? sourceFile?.folder ?? (folders.includes('메모') ? '메모' : (folders[0] ?? '')),
+    file?.folder ??
+      sourceFile?.folder ??
+      (folders.includes('notes') ? 'notes' : (folders[0] ?? '')),
   );
   const [format, setFormat] = useState(
     (file ?? sourceFile) && !(file ?? sourceFile)!.name.toLowerCase().endsWith('.txt')
@@ -170,7 +173,7 @@ export function SaveNoteForm({
           setOverwrite(true);
           return;
         }
-        if (!existing && files.length >= 100) {
+        if (!existing && files.filter((item) => !isSystemFileId(item.id)).length >= 100) {
           setError('최대 100개의 메모 파일을 보관할 수 있습니다.');
           return;
         }

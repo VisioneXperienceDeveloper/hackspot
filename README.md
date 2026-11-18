@@ -71,9 +71,14 @@ stop 8080
 - `src/game/engine.ts`: 명령 실행, 상태 전이, 제출 판정. 네트워크/DOM/실제 셸 접근 없음.
 - `src/game/shell/`: 셸 구문, 파일 명령, 가상 인터페이스와 HTTP 서비스.
 - `src/game/storage.ts`: v1 저장의 식별자·형식·상태 관계 검증.
-- `src/hooks/useAutoSave.ts`: 지연 저장, 페이지 수명에 따른 flush, 실패/재시도.
-- `src/App.tsx`, `src/components/`: 창, 가상 앱, 모달, 조사 UI.
+- `src/hooks/`: 자동 저장, 게임 세션, 창 관리, 파일·휴지통 작업.
+- `src/configs/`: 초기 창 배치 등 데스크톱 설정.
+- `src/pages/`: 메일·브라우저·파일·메모·터미널·휴지통과 가상 사이트.
+- `src/components/desktop/`, `src/components/common/`: 데스크톱 셸, 창 목록, 대화상자, 공통 UI.
+- `src/styles/`: 페이지와 데스크톱 기능별 CSS. `src/styles.css`에서 기존 캐스케이드 순서로 불러옵니다.
+- `src/App.tsx`: 세션과 앱 화면을 조립하는 진입점.
 - `docs/DESIGN.md`: 시나리오·규칙·화면 설계와 구현/검증 대조표.
+- `docs/cyber-investigation-campaign.md`: 난이도가 높아지는 50개 사이버 조사 사건의 상세 기획안. 실제 사건은 교훈 참고용이며 게임에 구현된 콘텐츠는 아닙니다.
 - `docs/maintenance-roadmap.md`: 수정 이력과 향후 범위.
 - [백엔드 개발 작업 매뉴얼](docs/backend-engineering-manual.md): 작업별 기본 참고 기준. 저장소 지침과 기존 구현을 먼저 확인하고 요청에 해당하는 절만 적용합니다.
 
@@ -111,4 +116,4 @@ npm audit
 
 현재 v1의 정상 저장은 그대로 읽습니다. 향후 저장 형식을 바꾸면 별도 버전과 명시적 migration을 추가하고 기존 진행 샘플로 테스트해야 합니다. 미래 버전을 현재 버전으로 추정 변환하거나 손상된 저장을 자동 삭제하지 않습니다.
 
-Git 저장소는 `fix/design-stability` 브랜치로 초기화했습니다. 첫 커밋과 원격 연결은 아직 없습니다. `.gitignore`는 빌드, 의존성, 테스트 결과, 환경 파일을 제외합니다. `.github/workflows/check.yml`은 push/PR 시 같은 정적·브라우저·호스팅 검사를 실행하도록 구성되어 있습니다.
+Git 변경은 `main` 브랜치에서 관리하며 GitHub 원격 저장소에 게시합니다. `.gitignore`는 빌드, 의존성, 테스트 결과, 환경 파일을 제외합니다. `.github/workflows/check.yml`은 push/PR 시 정적·브라우저·호스팅 검사를 실행하도록 구성되어 있습니다.

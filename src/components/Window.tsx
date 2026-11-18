@@ -1,7 +1,8 @@
 import { useRef, type ReactNode, type PointerEvent } from 'react';
-import { fitWindow } from './windowGeometry';
+import { fitWindow, resizeWindow, type ResizeDirection } from './windowGeometry';
 import { Minus, Square, X, Copy } from 'lucide-react';
-export type AppId = 'mail' | 'terminal' | 'browser' | 'files' | 'notes' | 'table';
+export type AppId = 'mail' | 'terminal' | 'browser' | 'files' | 'notes' | 'table' | 'trash';
+const resizeDirections: ResizeDirection[] = ['se', 's', 'e', 'sw', 'w', 'ne', 'n', 'nw'];
 export interface WindowState {
   id: AppId;
   x: number;
@@ -30,9 +31,9 @@ export function Window({ win, title, icon, active, onChange, onFocus, children }
     wy: number;
     w: number;
     h: number;
-    resize: boolean;
+    resize: ResizeDirection | null;
   } | null>(null);
-  function down(e: PointerEvent<HTMLElement>, resize = false) {
+  function down(e: PointerEvent<HTMLElement>, resize: ResizeDirection | null = null) {
     if ((e.target as HTMLElement).closest('button') || win.maximized) return;
     e.preventDefault();
     onFocus(win.id);
@@ -53,9 +54,16 @@ export function Window({ win, title, icon, active, onChange, onFocus, children }
     const dx = e.clientX - s.x,
       dy = e.clientY - s.y;
     const candidate = s.resize
-      ? { ...win, width: s.w + dx, height: s.h + dy }
-      : { ...win, x: s.wx + dx, y: s.wy + dy };
-    onChange(win.id, fitWindow(candidate, window.innerWidth, window.innerHeight));
+      ? resizeWindow(
+          { ...win, x: s.wx, y: s.wy, width: s.w, height: s.h },
+          s.resize,
+          dx,
+          dy,
+          window.innerWidth,
+          window.innerHeight,
+        )
+      : fitWindow({ ...win, x: s.wx + dx, y: s.wy + dy }, window.innerWidth, window.innerHeight);
+    onChange(win.id, candidate);
   }
   function up() {
     start.current = null;
@@ -77,6 +85,7 @@ export function Window({ win, title, icon, active, onChange, onFocus, children }
         onPointerDown={down}
         onPointerMove={move}
         onPointerUp={up}
+        onPointerCancel={up}
         onLostPointerCapture={up}
         onDoubleClick={(e) => {
           if (!(e.target as HTMLElement).closest('button'))
@@ -113,15 +122,19 @@ export function Window({ win, title, icon, active, onChange, onFocus, children }
         </div>
       </header>
       <div className="window-content">{children}</div>
-      <div
-        className="resize-handle"
-        aria-label={title + ' 크기 조절'}
-        title="끌어서 창 크기 조절"
-        onPointerDown={(e) => down(e, true)}
-        onPointerMove={move}
-        onPointerUp={up}
-        onLostPointerCapture={up}
-      />
+      {resizeDirections.map((direction) => (
+        <div
+          key={direction}
+          className={`resize-handle resize-${direction}`}
+          aria-hidden="true"
+          title="끌어서 창 크기 조절"
+          onPointerDown={(e) => down(e, direction)}
+          onPointerMove={move}
+          onPointerUp={up}
+          onPointerCancel={up}
+          onLostPointerCapture={up}
+        />
+      ))}
     </section>
   );
 }

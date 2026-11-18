@@ -1,0 +1,607 @@
+:root {
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  color: #dce7ee;
+  background: #08131d;
+  font-synthesis: none;
+  font-size: 14px;
+  --accent: #65e3d5;
+  --muted: #91a6b6;
+  --border: #3b5466;
+  --surface: #0d1923;
+  --doc-size: 14px;
+}
+
+/* Account setup and the in-world reward bank. */
+.tutorial-shell {
+  height: 100%;
+  overflow: auto;
+  background: radial-gradient(ellipse at 100% 0%, #18433f70, transparent 65%), #0d1923;
+}
+.tutorial-header,
+.bank-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 30px;
+  border-bottom: 1px solid #ffffff12;
+}
+.tutorial-brand,
+.bank-header > span {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  letter-spacing: 1px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.tutorial-header small,
+.tutorial-caption {
+  color: #9bb1bc;
+  font-size: 12px;
+}
+.tutorial-steps {
+  display: flex;
+  gap: 24px;
+  list-style: none;
+  padding: 20px 30px;
+  margin: 0;
+  border-bottom: 1px solid #ffffff12;
+}
+.tutorial-steps li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #91a6b6;
+}
+.tutorial-steps li > span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  width: 25px;
+  height: 25px;
+  font-size: 10px;
+  flex-shrink: 0;
+}
+.tutorial-steps .current,
+.tutorial-steps .done {
+  color: #65e3d5;
+}
+.tutorial-steps .current {
+  font-weight: 700;
+}
+.tutorial-content {
+  max-width: 690px;
+  margin: 0 auto;
+  padding: 35px 36px 30px;
+}
+.tutorial-eyebrow,
+.bank-eyebrow {
+  display: block;
+  margin-bottom: 16px;
+  color: #65e3d5;
+  font:
+    10px ui-monospace,
+    monospace;
+  letter-spacing: 1.7px;
+}
+.tutorial-content h1,
+.bank-content h1 {
+  font-size: clamp(26px, 3vw, 38px);
+  font-weight: 650;
+  line-height: 1.3;
+  letter-spacing: -1.5px;
+  margin: 0 0 18px;
+}
+.tutorial-content > p {
+  color: #b4c7d1;
+  font-size: var(--doc-size);
+}
+.setup-preview {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  color: #8cabae;
+  margin: 28px 0;
+  font-size: 11px;
+}
+.setup-preview > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.email-setup > label,
+.bank-signup > label:not(.bank-consent) {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.email-address-field {
+  display: flex;
+  border: 1px solid #4f706f;
+  border-radius: 7px;
+  background: #07141b;
+  align-items: center;
+  overflow: hidden;
+  max-width: 470px;
+}
+.email-address-field:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.email-address-field.invalid {
+  border-color: #ee8b87;
+}
+.email-address-field input {
+  flex: 1;
+  width: 0;
+  padding: 16px;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font:
+    15px ui-monospace,
+    monospace;
+}
+.email-address-field > span {
+  padding-right: 16px;
+  color: #9bb6c2;
+  font:
+    13px ui-monospace,
+    monospace;
+}
+.email-setup .tutorial-caption {
+  margin: 10px 0 24px;
+}
+.tutorial-footer,
+.bank-footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding: 20px 30px;
+  border-top: 1px solid #ffffff12;
+  color: #91a6b6;
+  font-size: 11px;
+  line-height: 1.7;
+}
+.tutorial-footer svg {
+  flex-shrink: 0;
+}
+.created-email {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 0;
+  color: #65e3d5;
+}
+.created-email b,
+.created-email small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.created-email small {
+  color: #9bb1bc;
+  font-size: 11px;
+  margin-bottom: 5px;
+}
+.bank-link {
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+  padding: 22px 18px;
+  gap: 16px;
+  margin: 8px 0 14px;
+  border: 1px solid #46716b;
+  border-radius: 10px;
+  background: #18302f;
+}
+.bank-link > span:nth-child(2) {
+  flex: 1;
+}
+.bank-link b,
+.bank-link small {
+  display: block;
+}
+.bank-link b {
+  font-size: 15px;
+  margin-bottom: 7px;
+}
+.bank-link small {
+  color: #9bb1bc;
+}
+.bank-link-icon {
+  color: #b2e6bb;
+}
+.tutorial-ready h2 {
+  font-size: 23px;
+  margin-bottom: 12px;
+}
+.tutorial-ready > p {
+  font-size: var(--doc-size);
+}
+.play-guide {
+  list-style: none;
+  padding: 0;
+  margin: 22px 0 26px;
+}
+.play-guide li {
+  border-bottom: 1px solid #8da69f35;
+  padding: 12px 0;
+}
+.play-guide b,
+.play-guide span {
+  display: block;
+}
+.play-guide b {
+  font-size: 13px;
+  margin-bottom: 5px;
+}
+.play-guide span {
+  font-size: 12px;
+  line-height: 1.7;
+}
+.tutorial-ready .tutorial-caption {
+  margin: 12px 0 0;
+  font-size: 12px;
+}
+.bank-site {
+  min-height: 100%;
+  background: #f0f2e9;
+  color: #1b352f;
+  --accent: #175e48;
+}
+.bank-header {
+  background: #173c30;
+  color: #edf4e9;
+}
+.bank-header > span {
+  font-size: 17px;
+  letter-spacing: 1.5px;
+}
+.bank-header small {
+  font:
+    9px ui-monospace,
+    monospace;
+  letter-spacing: 1px;
+  color: #a4c4b3;
+}
+.bank-site .tutorial-steps {
+  border-color: #cdd7cc;
+}
+.bank-site .tutorial-steps li {
+  color: #71847a;
+}
+.bank-site .tutorial-steps .current,
+.bank-site .tutorial-steps .done {
+  color: #175e48;
+}
+.bank-content {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 36px 32px;
+}
+.bank-eyebrow,
+.bank-site .tutorial-eyebrow {
+  color: #376b52;
+}
+.bank-content > p {
+  color: #54695f;
+  font-size: var(--doc-size);
+}
+.bank-site .primary {
+  color: #fff;
+  background: #1b5140;
+  border-color: #1b5140;
+}
+.bank-site button:hover {
+  background: #dce5d8;
+  color: #173c30;
+}
+.bank-site .primary:hover {
+  background: #29664f;
+  color: #fff;
+}
+.bank-benefits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin: 25px 0 30px;
+  color: #3c6550;
+  font-size: 12px;
+}
+.bank-benefits > span {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+}
+.bank-signup {
+  padding: 24px;
+  border: 1px solid #cbd6c7;
+  border-radius: 10px;
+  background: #fbfcf7;
+}
+.bank-signup h2 {
+  font-size: 19px;
+}
+.bank-signup > input {
+  width: 100%;
+  background: #eff3eb;
+  border-color: #cbd6c7;
+  color: #315542;
+}
+.bank-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin: 20px 0;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.bank-consent input {
+  accent-color: #1b5140;
+}
+.bank-account-heading,
+.bank-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.bank-account-heading h1 {
+  font-size: 26px;
+}
+.bank-active {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  white-space: nowrap;
+  padding: 6px 9px;
+  border: 1px solid #b9cdb5;
+  border-radius: 15px;
+}
+.balance-card {
+  padding: 26px;
+  background: radial-gradient(ellipse at top right, #497251, #1a4335 75%);
+  color: #f0f5e9;
+  border-radius: 12px;
+  margin: 8px 0 30px;
+}
+.balance-card > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  color: #bfd2be;
+}
+.balance-card > strong {
+  display: block;
+  font-size: 40px;
+  font-weight: 500;
+  letter-spacing: -1px;
+  margin: 19px 0 26px;
+}
+.balance-card .account-details {
+  flex-wrap: wrap;
+  font:
+    11px ui-monospace,
+    monospace;
+  overflow-wrap: anywhere;
+  border-top: 1px solid #ffffff26;
+  padding-top: 16px;
+}
+.bank-site .tutorial-caption {
+  color: #586c60;
+}
+.bank-site code {
+  color: #175e48;
+}
+.bank-section-heading h2 {
+  font-size: 17px;
+  margin: 0;
+}
+.bank-section-heading > span {
+  color: #647767;
+  font-size: 11px;
+}
+.bank-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 30px 12px 20px;
+  text-align: center;
+  color: #607968;
+}
+.bank-empty > b {
+  margin: 14px 0 8px;
+  font-size: 13px;
+}
+.bank-empty p {
+  font-size: 12px;
+}
+.bank-empty button {
+  color: #1b5140;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.bank-transactions ul {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+}
+.bank-transactions li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 0;
+  border-bottom: 1px solid #d1dbcd;
+}
+.transaction-icon {
+  background: #dce6d5;
+  border-radius: 50%;
+  padding: 9px;
+  display: flex;
+}
+.bank-transactions li > div {
+  flex: 1;
+}
+.bank-transactions li b,
+.bank-transactions li small {
+  display: block;
+  font-size: 12px;
+}
+.bank-transactions li small {
+  color: #607968;
+  font-size: 11px;
+  margin-top: 6px;
+}
+.bank-transactions li > strong {
+  font-size: 14px;
+  color: #175e48;
+  white-space: nowrap;
+}
+.bank-future {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 20px 0 0;
+  margin-top: 25px;
+  border-top: 1px solid #d1dbcd;
+  color: #60705f;
+}
+.bank-future svg {
+  flex-shrink: 0;
+}
+.bank-future b {
+  font-size: 12px;
+}
+.bank-future p {
+  font-size: 11px;
+  margin: 7px 0 0;
+}
+.bank-future > span {
+  margin-left: auto;
+  font-size: 10px;
+  white-space: nowrap;
+  background: #e0e6d9;
+  padding: 4px 7px;
+  border-radius: 4px;
+}
+.bank-footer {
+  color: #60705f;
+  border-color: #d1dbcd;
+  font-size: 10px;
+}
+.mail-reward {
+  padding: 16px;
+  border: 1px solid #385d57;
+  border-radius: 7px;
+  background: #17302b;
+}
+@media (max-width: 540px) {
+  .tutorial-header,
+  .bank-header {
+    padding: 18px;
+  }
+  .mail-account-content {
+    padding: 30px 18px;
+  }
+  .tutorial-header > small,
+  .bank-header > small,
+  .wide-only {
+    display: none;
+  }
+  @media (max-width: 540px) {
+    .save-warning {
+      flex-direction: column;
+      gap: 6px;
+      max-height: 45dvh;
+      overflow: auto;
+    }
+    .taskbar .launcher {
+      padding: 5px;
+    }
+    .taskbar nav button {
+      padding: 0 5px;
+    }
+    .taskbar nav {
+      gap: 1px;
+    }
+    .taskbar nav small {
+      position: absolute;
+      top: 1px;
+      right: 0;
+      padding: 1px 3px;
+    }
+    .taskbar-status {
+      min-width: 0;
+    }
+  }
+  .tutorial-steps {
+    padding: 16px;
+    gap: 12px;
+    justify-content: space-between;
+  }
+  .tutorial-steps li {
+    font-size: 10px;
+    gap: 4px;
+  }
+  .tutorial-steps li > span {
+    width: 21px;
+    height: 21px;
+  }
+  .tutorial-content,
+  .bank-content {
+    padding: 26px 20px;
+  }
+  .setup-preview {
+    gap: 6px;
+    font-size: 10px;
+  }
+  .setup-preview > span {
+    gap: 4px;
+  }
+  .setup-preview svg {
+    width: 13px;
+  }
+  .email-address-field input {
+    padding: 14px 10px;
+  }
+  .email-address-field > span {
+    padding-right: 10px;
+    font-size: 11px;
+  }
+  .bank-signup,
+  .balance-card {
+    padding: 18px;
+  }
+  .bank-account-heading h1 {
+    font-size: 23px;
+  }
+  .balance-card > strong {
+    font-size: 35px;
+  }
+  .bank-transactions li {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .bank-transactions li > strong {
+    margin-left: auto;
+  }
+  .bank-future {
+    flex-wrap: wrap;
+  }
+  .bank-future > div {
+    flex: 1;
+  }
+}
+* {
+  box-sizing: border-box;
+}

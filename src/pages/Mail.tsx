@@ -1,13 +1,17 @@
 import { useState } from 'react';
 import { Mail as MailIcon, ArrowRight, Send, FileCheck2, CheckCircle2 } from 'lucide-react';
 import { type GameState, type Submission } from '../game/engine';
+import { CASE_REWARDS, formatCredits } from '../game/account';
+import { AccountSetup } from '../components/Onboarding';
 export function Mail({
   state,
+  createEmail,
   accept,
   openBrowser,
   onSubmit,
 }: {
   state: GameState;
+  createEmail: (handle: string) => void;
   accept: () => void;
   openBrowser: () => void;
   onSubmit: (f: Submission) => string;
@@ -20,38 +24,40 @@ export function Mail({
       interval: '',
       route: 'review',
     });
+  if (!state.onboarding.email) return <AccountSetup createEmail={createEmail} />;
+  const email = state.onboarding.email;
+  const handle = email.slice(0, email.lastIndexOf('@'));
+  const isLongEmail = handle.length >= 10;
+  const displayEmail = isLongEmail
+    ? `${handle.slice(0, 10)}-...${email.slice(email.lastIndexOf('@'))}`
+    : email;
   return (
     <div className="mail-layout">
       <aside className="mail-list">
-        <button className="compose-button" onClick={() => setSelected('submit')}>
+        <button
+          className="compose-button"
+          disabled={!state.onboarding.completed}
+          onClick={() => setSelected('submit')}
+        >
           <Send size={15} />
-          조사 결과 제출
+          {state.onboarding.completed ? '조사 결과 제출' : '메일 작성'}
         </button>
         <span className="list-label">
-          받은 메일 <span>{state.compared ? 3 : 2}</span>
+          받은편지함 <span>{state.onboarding.completed ? (state.compared ? 2 : 1) : 0}</span>
         </span>
-        <button
-          className={selected === 'brief' ? 'mail-item selected' : 'mail-item'}
-          onClick={() => setSelected('brief')}
-        >
-          <MailIcon size={18} />
-          <span>
-            <b>윤서진</b>
-            <small>사라진 11분</small>
-          </span>
-          <time>10:24</time>
-        </button>
-        <button
-          className={selected === 'guide' ? 'mail-item selected' : 'mail-item'}
-          onClick={() => setSelected('guide')}
-        >
-          <MailIcon size={18} />
-          <span>
-            <b>ECHO 시스템</b>
-            <small>조사 환경 사용 안내</small>
-          </span>
-          <time>09:00</time>
-        </button>
+        {state.onboarding.completed && (
+          <button
+            className={selected === 'brief' ? 'mail-item selected' : 'mail-item'}
+            onClick={() => setSelected('brief')}
+          >
+            <MailIcon size={18} />
+            <span>
+              <b>윤서진</b>
+              <small>사라진 11분</small>
+            </span>
+            <time>10:24</time>
+          </button>
+        )}
         {state.compared && (
           <button
             className={selected === 'followup' ? 'mail-item selected' : 'mail-item'}
@@ -67,11 +73,24 @@ export function Mail({
         )}
         <div className="mail-list-bottom">
           <span className="status-dot" />
-          로컬 수신함
+          <span
+            className={`mail-account-email${isLongEmail ? ' truncated' : ''}`}
+            title={isLongEmail ? email : undefined}
+            aria-label={email}
+            tabIndex={isLongEmail ? 0 : undefined}
+          >
+            {displayEmail}
+          </span>
         </div>
       </aside>
       <div className="mail-body">
-        {selected === 'brief' ? (
+        {!state.onboarding.completed ? (
+          <section className="mail-empty-state">
+            <MailIcon size={30} />
+            <h2>받은편지함</h2>
+            <p>새 메일이 없습니다.</p>
+          </section>
+        ) : selected === 'brief' ? (
           <>
             <h2>사라진 11분</h2>
             <div className="sender">
@@ -83,7 +102,7 @@ export function Mail({
                 <p>
                   2031년 10월 19일 · 오전 10:24
                   <br />
-                  받는 사람 · 나
+                  받는 사람 · {state.onboarding.email}
                 </p>
               </div>
             </div>
@@ -124,6 +143,11 @@ export function Mail({
                 <br />
                 기록은 누군가의 이름보다 정확할 수 있으니까요.
               </p>
+              <p className="mail-reward">
+                해결 사례금 · <strong>{formatCredits(CASE_REWARDS['case-01'].amount)}</strong>
+                <br />
+                정확한 조사 결과가 확인되면 연결한 VAULT BANK 계좌로 입금하겠습니다.
+              </p>
               <p>윤서진 드림</p>
             </div>
             <div className="mail-footer">
@@ -141,41 +165,6 @@ export function Mail({
                 {state.accepted ? '자료 조사하기' : '조사 시작'}
                 <ArrowRight size={17} />
               </button>
-            </div>
-          </>
-        ) : selected === 'guide' ? (
-          <>
-            <h2>조사 환경 사용 안내</h2>
-            <div className="mail-copy">
-              <p>
-                이곳의 모든 주소와 파일은 사건 속 가상 자료입니다. 실제 시스템에는 연결되지
-                않습니다.
-              </p>
-              <h3>처음이라면</h3>
-              <p>
-                메일의 의뢰를 수락하고 브라우저의 즐겨찾기를 읽으세요. 발견한 계정과 규칙은 메모장에
-                적어 둘 수 있습니다.
-              </p>
-              <p>
-                터미널에서 <code>help 조사</code>로 조사 명령을 확인하세요. 주소 조회 → 서비스 확인
-                → 연결 → 파일 열람 순서로 조사합니다.
-              </p>
-              <h3>키보드</h3>
-              <p>
-                Alt + 1 터미널 · Alt + 2 브라우저 · Alt + 3 메일 · Alt + 4 폴더 · Alt + 5 메모장 ·
-                Alt + 6 액셀
-                <br />
-                터미널 ↑↓ 입력 기록 · Tab 자동완성 · Ctrl/Cmd + L 출력 지우기
-              </p>
-              <h3>창과 저장</h3>
-              <p>
-                제목 표시줄을 끌어 이동하고 오른쪽 아래 모서리로 크기를 조절합니다. 제목 표시줄을 두
-                번 누르면 최대화합니다. 하단 작업 표시줄에서 최소화한 창을 복원합니다.
-              </p>
-              <p>
-                진행은 이 브라우저에 자동 저장됩니다. 브라우저 데이터를 지우면 기록도 사라집니다.
-                막히면 오른쪽 「힌트 보기」를 한 단계씩 펼쳐 보세요. 시간 제한은 없습니다.
-              </p>
             </div>
           </>
         ) : selected === 'followup' ? (

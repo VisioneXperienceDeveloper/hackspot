@@ -5,6 +5,7 @@ import {
   FolderOpen,
   NotebookPen,
   Table2,
+  Trash2,
   type LucideIcon,
 } from 'lucide-react';
 import type { AppId } from './Window';
@@ -20,5 +21,14 @@ export const appInfo: Record<AppId, { title: string; Icon: LucideIcon; keywords:
     Icon: Table2,
     keywords: 'excel 엑셀 table spreadsheet csv 표 보기 스프레드시트',
   },
+  trash: { title: '휴지통', Icon: Trash2, keywords: 'trash recycle bin deleted 삭제 복원' },
 };
-export const appOrder: AppId[] = ['terminal', 'browser', 'mail', 'files', 'notes', 'table'];
+export const appOrder: AppId[] = [
+  'terminal',
+  'browser',
+  'mail',
+  'files',
+  'notes',
+  'table',
+  'trash',
+];

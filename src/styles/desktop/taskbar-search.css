@@ -1,0 +1,226 @@
+.taskbar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 53px;
+  background: #07121df5;
+  border-top: 1px solid #3f596a77;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 0 20px;
+  z-index: 10000;
+}
+.taskbar .launcher {
+  padding: 8px;
+  color: #a9bfd1;
+}
+.taskbar .launcher[aria-expanded='true'] {
+  color: var(--accent);
+  background: #65e3d51a;
+}
+.desktop-search {
+  position: absolute;
+  z-index: 16000;
+  left: 16px;
+  bottom: 65px;
+  width: min(440px, calc(100vw - 32px));
+  max-height: min(580px, calc(100dvh - 130px));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: linear-gradient(145deg, #152a39f2, #091722f2);
+  backdrop-filter: blur(24px) saturate(130%);
+  -webkit-backdrop-filter: blur(24px) saturate(130%);
+  border: 1px solid #6b879c66;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px #0009;
+}
+.search-input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px;
+  border-bottom: 1px solid #47607366;
+  color: var(--accent);
+}
+.search-input-row:focus-within {
+  border-bottom-color: #65e3d577;
+}
+.search-input-row input {
+  flex: 1;
+  width: 100%;
+  border: 0;
+  padding: 4px 0;
+  background: transparent;
+  font-size: 14px;
+}
+.search-input-row input:focus-visible {
+  outline: none;
+}
+.search-input-row button {
+  padding: 5px;
+  color: var(--muted);
+}
+.search-results {
+  overflow: auto;
+  overscroll-behavior: contain;
+  min-height: 0;
+  padding: 8px;
+}
+.search-group-label {
+  padding: 10px 12px 6px;
+  font-size: 10px;
+  color: var(--muted);
+}
+.search-result {
+  width: 100%;
+  justify-content: flex-start;
+  padding: 10px 12px;
+  gap: 12px;
+  border-radius: 9px;
+  text-align: left;
+}
+.search-result[aria-selected='true'] {
+  background: #65e3d51a;
+  border-color: #65e3d533;
+}
+.search-result-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: #213e4c;
+  color: var(--accent);
+}
+.search-result-icon.file {
+  background: #273743;
+  color: #bbcedb;
+}
+.search-result-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.search-result-copy b,
+.search-result-copy small {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.search-result-copy b {
+  font-size: 12px;
+  font-weight: 500;
+}
+.search-result-copy small {
+  font-size: 10px;
+  color: var(--muted);
+}
+.search-result-action {
+  margin-left: auto;
+  flex-shrink: 0;
+  color: var(--muted);
+  font-size: 10px;
+}
+.search-empty {
+  padding: 20px 12px;
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.search-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 11px 16px;
+  border-top: 1px solid #47607344;
+  color: var(--muted);
+  font-size: 10px;
+}
+.taskbar nav {
+  display: flex;
+  gap: 9px;
+  height: 100%;
+  align-items: center;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.taskbar nav button {
+  flex-shrink: 0;
+  height: 39px;
+  padding: 0 14px;
+  color: #a8c0d0;
+  border-radius: 6px;
+  position: relative;
+  font-size: 11px;
+}
+.taskbar nav button.selected {
+  background: #183a4a;
+  border: 1px solid #2a7186;
+  color: #bcebe7;
+}
+.taskbar nav button.running:after {
+  content: '';
+  position: absolute;
+  bottom: 3px;
+  width: 11px;
+  height: 2px;
+  background: #6699a5;
+  border-radius: 3px;
+}
+.taskbar nav button.selected:after {
+  background: var(--accent);
+}
+.taskbar nav small {
+  font-size: 9px;
+  background: #315b63;
+  border-radius: 3px;
+  padding: 2px 4px;
+}
+.taskbar-status {
+  flex-shrink: 0;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 10px;
+  color: #a1bbcd;
+}
+.taskbar-status > svg {
+  color: var(--accent);
+}
+.taskbar-status time {
+  margin-left: 10px;
+  font-variant-numeric: tabular-nums;
+}
+.taskbar-status button {
+  display: none;
+}
+.toast {
+  position: absolute;
+  bottom: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20000;
+  background: #183b43;
+  border: 1px solid #4d948d;
+  padding: 13px 18px;
+  border-radius: 7px;
+  box-shadow: 0 8px 30px #0008;
+  font-size: 12px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  max-width: 90%;
+  width: max-content;
+}
+.toast svg {
+  color: var(--accent);
+  flex-shrink: 0;
+}

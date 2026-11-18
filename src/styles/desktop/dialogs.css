@@ -1,0 +1,141 @@
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: #020a12b8;
+  backdrop-filter: blur(9px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 30000;
+}
+.modal {
+  background: #101f2c;
+  border: 1px solid #4a6576;
+  box-shadow: 0 25px 100px #0009;
+  border-radius: 12px;
+  width: 560px;
+  max-width: 100%;
+  max-height: 90dvh;
+  overflow: auto;
+  padding: 38px;
+  position: relative;
+}
+.modal-close {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  color: #9bb2c1;
+}
+.modal h2 {
+  font-size: 25px;
+  margin-top: 20px;
+}
+.modal p {
+  font-size: 14px;
+  line-height: 1.9;
+  color: #bbcedb;
+  word-break: keep-all;
+}
+.modal .muted {
+  font-size: 11px;
+  color: #7f9aab;
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 25px;
+}
+.modal-actions > button:not(.primary) {
+  border: 1px solid #3c5665;
+  padding: 10px 15px;
+}
+.help-grid {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 14px;
+  font-size: 12px;
+  padding: 20px 0;
+  margin: 15px 0;
+  border-block: 1px solid #304652;
+}
+.help-grid kbd {
+  color: var(--accent);
+}
+.ending-symbol {
+  height: 65px;
+  width: 65px;
+  display: grid;
+  place-items: center;
+  background: #183b40;
+  border: 1px solid #4b8b88;
+  border-radius: 50%;
+  color: var(--accent);
+  margin-bottom: 25px;
+}
+.ending-label {
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: var(--accent);
+}
+.ending-facts {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 12px;
+  color: #8fcebd;
+  margin: 25px 0;
+}
+.ending-facts span {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+blockquote {
+  margin: 25px 0;
+  padding: 15px 20px;
+  border-left: 2px solid #60b3ac;
+  background: #142d36;
+  font-size: 15px;
+  line-height: 1.9;
+  color: #c5dfde;
+}
+blockquote cite {
+  display: block;
+  font-size: 11px;
+  color: #90aeae;
+  margin-top: 10px;
+}
+.save-warning {
+  position: absolute;
+  bottom: 65px;
+  left: 100px;
+  right: 260px;
+  z-index: 20000;
+  background: #493d25;
+  border: 1px solid #957c45;
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-size: 12px;
+}
+.save-warning p {
+  margin: 0;
+}
+.save-warning button {
+  background: #756035;
+  flex-shrink: 0;
+}
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background: #46616b88;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}

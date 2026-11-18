@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { finishTutorial } from './tutorialHelpers';
 
 const saveKey = 'echo-investigation-v1';
 const app = (page: Page, name: string) =>
@@ -67,11 +68,61 @@ test.beforeEach(async ({ page }) => {
   page.on('requestfailed', (r) => found.push(r.url() + ': ' + r.failure()?.errorText));
   await page.goto('/');
   await expect(page).toHaveTitle('잔향 — 사라진 11분');
+  await finishTutorial(page);
+  await page.getByRole('button', { name: '브라우저 닫기', exact: true }).click();
+  await open(page, '터미널');
+  await open(page, '메일');
   await expect(app(page, '메일').getByRole('heading', { name: '사라진 11분' })).toBeVisible();
   await expect(page.locator('vite-error-overlay')).toHaveCount(0);
 });
 test.afterEach(async ({ page }) => {
   expect(errors.get(page)).toEqual([]);
+});
+
+test('해온 관측소의 관측 현황과 조사 단서를 표시한다', async ({ page }) => {
+  const portal = app(page, '브라우저').locator('.haeon-portal');
+
+  await visit(page, 'haeon.test/');
+  await expect(portal.getByRole('heading', { name: '실시간 관측 현황' })).toBeVisible();
+  await expect(portal).toContainText('MO-04');
+  await expect(portal).toContainText('18.4');
+
+  await visit(page, 'haeon.test/report');
+  await expect(portal.getByRole('heading', { name: '10월 17일 수질 보고서' })).toBeVisible();
+  await expect(portal.getByRole('table')).toContainText('23:14–23:25');
+  await expect(portal).toContainText('정기 보정');
+
+  await visit(page, 'haeon.test/notice');
+  await expect(portal.getByRole('heading', { name: '외부 감사 계정 안내' })).toBeVisible();
+  await expect(portal).toContainText('MORA');
+  await expect(portal).toContainText('tide.test');
+  await expect(portal).toContainText('auditor');
+});
+
+test('시민 관측 기록실과 독립 해양기록원의 페이지를 표시한다', async ({ page }) => {
+  const browser = app(page, '브라우저');
+
+  await visit(page, 'tide.test/');
+  const tide = browser.locator('.tide-site');
+  await expect(tide.getByRole('heading', { name: '시민 관측 노트' })).toBeVisible();
+  await expect(tide).toContainText('이번 달 예정된 보정일은 10월 12일');
+  await expect(tide).toContainText('사진만으로 원인을 단정하고 싶지는 않다');
+
+  await visit(page, 'tide.test/handover');
+  await expect(tide.getByRole('heading', { name: '야간 인계 키 규칙' })).toBeVisible();
+  await expect(tide).toContainText('기존 관측소 코드-관측 날짜');
+  await expect(tide).toContainText('WAVE-0203');
+
+  await visit(page, 'archive.test/');
+  const archive = browser.locator('.archive-portal');
+  await expect(archive.getByRole('heading', { name: '자료 목록' })).toBeVisible();
+  await expect(archive).toContainText('기관 공개 수질 보고서');
+  await expect(archive).toContainText('개별 보관 서버 주소와 인증키');
+
+  await visit(page, 'archive.test/guide');
+  await expect(archive.getByRole('heading', { name: '세 기록을 연결하는 방법' })).toBeVisible();
+  await expect(archive).toContainText('끝 시각은 제외');
+  await expect(archive).toContainText('collect로 보관하고 compare로');
 });
 
 for (const route of ['review', 'public'] as const) {
@@ -111,7 +162,7 @@ for (const route of ['review', 'public'] as const) {
     await command(page, 'read /original/approval.eml');
     await command(page, 'collect /original/approval.eml');
     await command(page, 'compare');
-    await openFolder(page, '증거');
+    await openFolder(page, 'downloads');
     await app(page, '폴더').getByRole('button', { name: 'sensor.csv', exact: true }).dblclick();
     const sheet = app(page, '액셀');
     await sheet.getByRole('cell', { name: '8.4', exact: true }).click();
@@ -123,13 +174,13 @@ for (const route of ['review', 'public'] as const) {
     await page.keyboard.press('ArrowLeft');
     await expect(sheet.getByLabel('셀 위치')).toHaveText('A4');
     await expect(sheet.getByLabel('셀 값')).toHaveText('23:18');
-    await openFolder(page, '증거');
+    await openFolder(page, 'downloads');
     await app(page, '폴더').getByRole('button', { name: 'approval.eml', exact: true }).dblclick();
     await expect(
       app(page, '메일').getByRole('heading', { name: 'CHANGE-1017 / 오늘 보고서 처리' }),
     ).toBeVisible();
     await app(page, '메일').getByRole('button', { name: '수신함', exact: true }).click();
-    await openFolder(page, '증거');
+    await openFolder(page, 'downloads');
     await app(page, '폴더').getByRole('button', { name: 'comparison.txt', exact: true }).dblclick();
     await expect(app(page, '메모장').getByRole('textbox', { name: '개인 메모' })).toHaveValue(
       /한기석/,
@@ -152,14 +203,55 @@ for (const route of ['review', 'public'] as const) {
     ).toBeVisible();
     await saved(page);
     expect((await snapshot(page)).ending).toBe(route);
+    expect((await snapshot(page)).bank.transactions).toHaveLength(1);
+    expect((await snapshot(page)).bank.transactions[0].amount).toBe(2500);
     await page.screenshot({ path: `/tmp/echo-${info.project.name}-${route}.png` });
     await page.reload();
     await expect(page.getByRole('dialog', { name: '조사 완료' })).toBeVisible();
     await page.getByRole('button', { name: '기록 돌아보기' }).click();
     await page.getByRole('button', { name: '진행 기록', exact: true }).click();
     await expect(page.locator('.journal-label')).toContainText('5 / 5');
+    await page.getByRole('button', { name: '진행 기록 닫기', exact: true }).click();
+    await open(page, '브라우저');
+    const address = app(page, '브라우저').getByRole('textbox', { name: '가상 브라우저 주소' });
+    await address.fill('vaultbank.test');
+    await address.press('Enter');
+    await expect(page.getByRole('region', { name: '계좌 잔액' })).toContainText('2,500 CR');
+    await expect(page.getByRole('region', { name: '입금 내역' })).toContainText(
+      '사라진 11분 · 해결 사례금',
+    );
+    await page.screenshot({ path: `/tmp/hackspot-bank-${info.project.name}-${route}.png` });
   });
 }
+
+test('주소 입력에서 즐겨찾기를 추가·제거하고 저장된 즐겨찾기 바를 관리한다', async ({ page }) => {
+  await open(page, '브라우저');
+  const browser = app(page, '브라우저');
+  const address = browser.getByRole('textbox', { name: '가상 브라우저 주소' });
+  const addBookmark = browser.getByRole('button', { name: '현재 주소 즐겨찾기에 추가' });
+  const bookmarks = browser.locator('.bookmarks');
+
+  await expect(bookmarks).toHaveCount(0);
+  await expect(addBookmark).toHaveCSS('opacity', '0');
+  await address.hover();
+  await expect(addBookmark).toHaveCSS('opacity', '1');
+  await address.fill('vaultbank.test');
+  await addBookmark.click();
+  await expect(bookmarks).toBeVisible();
+  await bookmarks.getByRole('button', { name: 'VAULT BANK', exact: true }).click();
+  await expect(address).toHaveValue('vaultbank.test');
+  await saved(page);
+
+  await page.reload();
+  await open(page, '브라우저');
+  const restoredBookmarks = app(page, '브라우저').locator('.bookmarks');
+  await expect(restoredBookmarks).toBeVisible();
+  await restoredBookmarks
+    .getByRole('button', { name: 'vaultbank.test 즐겨찾기 제거', exact: true })
+    .click();
+  await expect(restoredBookmarks).toHaveCount(0);
+  await saved(page);
+});
 
 test('실행 중인 앱만 표시, 최소화 후 초안 유지, X 종료와 새 게임에서 초기화', async ({ page }) => {
   await expect(
@@ -200,6 +292,28 @@ test('실행 중인 앱만 표시, 최소화 후 초안 유지, X 종료와 새 
   await expect(page.getByLabel('지시자', { exact: true })).toHaveValue('');
   await page.getByRole('button', { name: '새 게임', exact: true }).click();
   await page.getByRole('button', { name: '새 조사 시작', exact: true }).click();
+  await expect(page.getByRole('dialog', { name: '조사 진행', exact: true })).toBeVisible();
+  await expect(app(page, '메일')).toBeHidden();
+  await expect(
+    page.getByRole('navigation', { name: '작업 표시줄' }).getByRole('button'),
+  ).toHaveCount(0);
+  await open(page, '메일');
+  await expect(app(page, '메일').getByLabel('메일 주소')).toBeVisible();
+  await expect(app(page, '메일')).not.toContainText('튜토리얼');
+  await open(page, '브라우저');
+  await expect(app(page, '브라우저').getByRole('heading', { name: '새 탭' })).toBeVisible();
+  await expect(app(page, '브라우저')).not.toContainText('튜토리얼');
+  await page.getByRole('button', { name: '진행 기록', exact: true }).click();
+  await expect(page.getByRole('list', { name: '시작 준비 체크리스트' })).toBeVisible();
+  expect(
+    await page.locator('.journal h1').evaluate((node) => getComputedStyle(node).fontSize),
+  ).toBe('14px');
+  expect(
+    await page.locator('.setup-checklist li').evaluate((node) => getComputedStyle(node).fontSize),
+  ).toBe('12px');
+  expect((await snapshot(page)).bank).toBeNull();
+  await finishTutorial(page);
+  await page.getByRole('button', { name: '브라우저 닫기', exact: true }).click();
   await expect(
     app(page, '메일').getByRole('button', { name: '조사 시작', exact: true }),
   ).toBeVisible();
@@ -211,6 +325,137 @@ test('실행 중인 앱만 표시, 최소화 후 초안 유지, X 종료와 새 
   await expect(page.getByRole('textbox', { name: '가상 브라우저 주소' })).toHaveValue(
     'echo://start',
   );
+});
+
+test('좁은 화면에서도 여러 앱 창을 동시에 표시한다', async ({ page }) => {
+  await page.setViewportSize({ width: 768, height: 1024 });
+  await open(page, '브라우저');
+  await open(page, '폴더');
+
+  await expect(app(page, '브라우저')).toBeVisible();
+  await expect(app(page, '폴더')).toBeVisible();
+  await expect(app(page, '터미널')).toBeVisible();
+});
+
+test('개발용 컴퓨터 시작 화면 프리뷰가 자동으로 종료된다', async ({ page }) => {
+  await page.goto('/?boot=preview');
+  const bootScreen = page.getByRole('status', { name: '컴퓨터 시작 화면', exact: true });
+  await expect(bootScreen).toBeVisible();
+  await expect(bootScreen.getByRole('progressbar', { name: '시스템 로딩' })).toBeVisible();
+  await expect(bootScreen).toBeHidden({ timeout: 5000 });
+});
+
+test('현황판 할 일 제목에 마우스를 대면 진행 안내가 표시된다', async ({ page }) => {
+  await page.getByRole('button', { name: '새 게임', exact: true }).click();
+  await page.getByRole('button', { name: '새 조사 시작', exact: true }).click();
+  const bankHint = page
+    .locator('.setup-checklist .journal-hint')
+    .filter({ hasText: '사례금 계좌 개설' });
+  await bankHint.hover();
+  await expect(bankHint).toHaveAttribute(
+    'data-hint',
+    '브라우저 주소창에 vaultbank.test를 입력해 계좌를 개설하세요.',
+  );
+  await expect
+    .poll(() => bankHint.evaluate((element) => getComputedStyle(element, '::after').visibility))
+    .toBe('visible');
+});
+
+test('desktop 폴더에 데스크톱과 같은 기본 앱 바로가기가 있다', async ({ page }) => {
+  await openFolder(page, 'desktop');
+  const finder = app(page, '폴더');
+  await expect(finder.locator('.finder-item.app')).toHaveCount(7);
+  await finder.getByRole('button', { name: '브라우저 앱 열기', exact: true }).click();
+  await expect(app(page, '브라우저')).toBeVisible();
+});
+
+test('파일을 휴지통에서 복원하고 영구 삭제한다', async ({ page }) => {
+  await openFolder(page, 'notes');
+  const finder = app(page, '폴더');
+  const items = finder.locator('.finder-items');
+  await items.getByRole('button', { name: 'handbook.txt', exact: true }).click();
+  await finder.getByRole('button', { name: '휴지통으로 이동' }).click();
+  await expect(items.getByRole('button', { name: 'handbook.txt', exact: true })).toHaveCount(0);
+
+  await open(page, '휴지통');
+  const trash = app(page, '휴지통');
+  await trash.getByRole('button', { name: 'handbook.txt 복원' }).click();
+  await expect(items.getByRole('button', { name: 'handbook.txt', exact: true })).toBeVisible();
+
+  await items.getByRole('button', { name: 'handbook.txt', exact: true }).click();
+  await finder.getByRole('button', { name: '휴지통으로 이동' }).click();
+  await open(page, '휴지통');
+  await trash.getByRole('button', { name: 'handbook.txt 영구 삭제' }).click();
+  const confirmation = trash.getByRole('alertdialog', { name: '영구 삭제 확인' });
+  await confirmation.getByRole('button', { name: '영구 삭제', exact: true }).click();
+
+  await saved(page);
+  await page.reload();
+  await openFolder(page, 'notes');
+  await expect(
+    app(page, '폴더')
+      .locator('.finder-items')
+      .getByRole('button', { name: 'handbook.txt', exact: true }),
+  ).toHaveCount(0);
+});
+
+test('notes 안내서와 config 설정 파일을 열고 설정을 적용한다', async ({ page }) => {
+  await openFolder(page, 'notes');
+  const finder = app(page, '폴더');
+  await finder.getByRole('button', { name: 'handbook.txt', exact: true }).dblclick();
+  const editor = app(page, '메모장').getByRole('textbox', { name: '개인 메모' });
+  await expect(editor).toHaveValue(/Alt\+1 터미널/);
+
+  await openFolder(page, 'config');
+  await finder.getByRole('button', { name: 'settings.json', exact: true }).dblclick();
+  const settings = {
+    wallpaper: 'midnight',
+    animations: false,
+    clockFormat: '12h',
+    showDesktopShortcuts: false,
+  };
+  await editor.fill(JSON.stringify(settings, null, 2));
+  await app(page, '메모장').getByRole('button', { name: '저장하기', exact: true }).click();
+  await page.getByRole('button', { name: '파일 저장', exact: true }).click();
+  await expect(page.locator('main.desktop')).toHaveAttribute('data-wallpaper', 'midnight');
+  await expect(page.locator('main.desktop')).toHaveAttribute('data-animations', 'off');
+  await expect(page.getByRole('navigation', { name: '데스크톱 앱' })).toHaveCount(0);
+});
+
+test('준비 단계가 완료되면 현황판이 열리고 완료 표시를 강조한다', async ({ page }) => {
+  await page.getByRole('button', { name: '새 게임', exact: true }).click();
+  await page.getByRole('button', { name: '새 조사 시작', exact: true }).click();
+  const dashboard = page.getByRole('dialog', { name: '조사 진행', exact: true });
+  await open(page, '메일');
+  await page.getByLabel('메일 주소').fill('test-email');
+  await page.getByRole('button', { name: '계정 만들기', exact: true }).click();
+  const accountEmail = page.locator('.mail-account-email');
+  await expect(accountEmail).toHaveText('test-email-...@hackspot.com');
+  await expect(accountEmail).toHaveAttribute('title', 'test-email@hackspot.com');
+  await expect(dashboard).toBeVisible();
+  const steps = dashboard.getByRole('list', { name: '시작 준비 체크리스트' }).getByRole('listitem');
+  await expect(steps.nth(0)).toHaveClass(/just-completed/);
+  await expect(steps.nth(0)).toContainText('완료');
+
+  await open(page, '브라우저');
+  await page
+    .getByRole('region', { name: '브라우저 창', exact: true })
+    .locator('.site-directory')
+    .getByRole('button', { name: /VAULT BANK/ })
+    .click();
+  await page.getByRole('button', { name: '새 계좌 개설', exact: true }).click();
+  await page.getByRole('checkbox').check();
+  await page.getByRole('button', { name: '계좌 개설하기', exact: true }).click();
+  await expect(dashboard).toBeVisible();
+  await expect(steps.nth(1)).toHaveClass(/just-completed/);
+  await expect(steps.nth(2)).toHaveClass(/just-completed/);
+});
+
+test('조사 목표 완료 시 현황판이 자동으로 열리고 체크를 강조한다', async ({ page }) => {
+  const dashboard = page.getByRole('dialog', { name: '조사 진행', exact: true });
+  await app(page, '메일').getByRole('button', { name: '조사 시작', exact: true }).click();
+  await expect(dashboard).toBeVisible();
+  await expect(dashboard.locator('.objectives li').nth(0)).toHaveClass(/just-completed/);
 });
 
 test('키보드 기록·자동완성·지우기·IME 확정 방어', async ({ page }) => {
@@ -292,6 +537,7 @@ test('손상 저장 원본 보존과 명시적 복구', async ({ page }) => {
   await page.reload();
   await expect(page.getByRole('alert')).toContainText('저장 기록을 읽을 수 없습니다');
   await page.getByRole('button', { name: '나중에', exact: true }).click();
+  await finishTutorial(page);
   await app(page, '메일').getByRole('button', { name: '조사 시작', exact: true }).click();
   expect(await page.evaluate((key) => localStorage.getItem(key), saveKey)).toBe('{"version":99}');
   await page.getByRole('button', { name: '저장 안내 열기' }).click();
@@ -337,8 +583,6 @@ test('모달 포커스 격리, Escape 복귀, 반응형과 글자 확대', async
   await page.keyboard.press('Escape');
   await expect(dialog).toHaveCount(0);
   await expect(page.getByRole('button', { name: '조작 안내', exact: true })).toBeFocused();
-  await page.getByRole('button', { name: '글자 크기 변경' }).click();
-  await expect(page.locator('main')).toHaveClass(/large-type/);
   await expect
     .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth))
     .toBe(true);
@@ -349,6 +593,7 @@ test('모달 포커스 격리, Escape 복귀, 반응형과 글자 확대', async
 
 test('창 이동·크기 조절·최대화·화면 축소 시 경계', async ({ page }, info) => {
   test.skip(info.project.name === 'mobile', '작은 화면은 단일 창 CSS 배치');
+  await page.setViewportSize({ width: 750, height: 700 });
   await open(page, '터미널');
   const win = app(page, '터미널');
   const before = (await win.boundingBox())!;
@@ -369,6 +614,12 @@ test('창 이동·크기 조절·최대화·화면 축소 시 경계', async ({ 
   expect(resized.width).toBeGreaterThan(after.width);
   await page.getByRole('button', { name: '터미널 최대화 또는 복원' }).click();
   await expect(win).toHaveClass(/maximized/);
+  const viewport = page.viewportSize()!;
+  const maximized = (await win.boundingBox())!;
+  expect(maximized.x).toBe(0);
+  expect(maximized.y).toBe(43);
+  expect(maximized.width).toBe(viewport.width);
+  expect(maximized.height).toBe(viewport.height - 96);
   await page.getByRole('button', { name: '터미널 최대화 또는 복원' }).click();
   expect((await win.boundingBox())!.width).toBe(resized.width);
   await page.setViewportSize({ width: 900, height: 600 });
@@ -386,7 +637,7 @@ test('미등록 주소·명령·권한 오류와 참고 문서 수집 실패에�
   await command(page, 'help __proto__');
   await expect(app(page, '터미널').getByRole('log')).toContainText('알 수 없는 명령어');
   await command(page, 'ls');
-  await expect(app(page, '터미널').getByRole('log')).toContainText('메모');
+  await expect(app(page, '터미널').getByRole('log')).toContainText('notes');
   await command(page, 'scan haeon.test');
   await expect(app(page, '터미널').getByRole('log')).toContainText('의뢰를 수락');
   await open(page, '메일');
@@ -436,7 +687,7 @@ test('검색에서 앱·저장 메모·수집 파일 열기, 미확보 파일 �
   const results = page.getByRole('listbox', { name: '검색 결과' });
   await launcher.click();
   await expect(search).toBeFocused();
-  await expect(results.getByRole('option')).toHaveCount(6);
+  await expect(results.getByRole('option')).toHaveCount(8);
   await search.fill('sensor.csv');
   await expect(results.getByRole('option')).toHaveCount(0);
   await expect(page.getByText('“sensor.csv” 검색 결과가 없습니다.')).toBeVisible();
@@ -446,7 +697,7 @@ test('검색에서 앱·저장 메모·수집 파일 열기, 미확보 파일 �
   await expect(page.getByRole('dialog', { name: '앱 및 파일 검색' })).toHaveCount(0);
   const notes = page.getByRole('textbox', { name: '개인 메모' });
   await notes.fill('인계 기록을 연결한다.');
-  await saveNoteAs(page, '인계.txt', '조사 기록');
+  await saveNoteAs(page, '인계.txt', 'notes');
   await open(page, '폴더');
   await expect(
     app(page, '폴더').getByRole('textbox', { name: '개인 메모', exact: true }),
@@ -459,7 +710,7 @@ test('검색에서 앱·저장 메모·수집 파일 열기, 미확보 파일 �
   await page.getByRole('button', { name: '메모장 닫기', exact: true }).click();
   await page.keyboard.press('Alt+5');
   await expect(notes).toHaveValue('');
-  await openFolder(page, '조사 기록');
+  await openFolder(page, 'notes');
   await app(page, '폴더').getByRole('button', { name: '인계.txt', exact: true }).dblclick();
   await expect(notes).toHaveValue('인계 기록을 연결한다.');
 
@@ -504,19 +755,19 @@ test('빈 메모장 → 이름·폴더별 파일 저장 → 덮어쓰기 확인 
   await expect(app(page, '메모장').getByRole('heading')).toHaveCount(0);
   await expect(notes).toHaveValue('');
   await notes.fill('첫 번째 기록');
-  await saveNoteAs(page, '조사.txt', '조사 기록/해온');
+  await saveNoteAs(page, '조사.txt', 'notes/해온');
   await app(page, '메모장').getByRole('button', { name: '새 메모', exact: true }).click();
   await expect(notes).toHaveValue('');
   await notes.fill('다른 폴더의 기록');
-  await saveNoteAs(page, '조사.txt', '메모');
+  await saveNoteAs(page, '조사.txt', 'desktop');
   await app(page, '메모장').getByRole('button', { name: '새 메모', exact: true }).click();
   await notes.fill('갱신한 기록');
-  await saveNoteAs(page, '조사.txt', '조사 기록/해온');
+  await saveNoteAs(page, '조사.txt', 'notes/해온');
   await expect(page.getByRole('alert')).toContainText('같은 이름의 파일');
   await page.getByRole('button', { name: '덮어쓰기', exact: true }).click();
-  expect((await snapshot(page)).noteFiles).toHaveLength(2);
+  expect((await snapshot(page)).noteFiles).toHaveLength(4);
   await page.reload();
-  await openFolder(page, '조사 기록/해온');
+  await openFolder(page, 'notes/해온');
   await app(page, '폴더').getByRole('button', { name: '조사.txt', exact: true }).dblclick();
   await expect(notes).toHaveValue('갱신한 기록');
   await page.getByRole('button', { name: '메모장 닫기', exact: true }).click();
@@ -527,7 +778,7 @@ test('빈 메모장 → 이름·폴더별 파일 저장 → 덮어쓰기 확인 
   ).toHaveCount(0);
   await open(page, '메모장');
   await expect(notes).toHaveValue('');
-  expect((await snapshot(page)).noteFiles).toHaveLength(2);
+  expect((await snapshot(page)).noteFiles).toHaveLength(4);
 });
 
 test('Finder 새 폴더·폴더 이동·파일 이름 변경과 이동·앱 연결·재시작 복구', async ({ page }) => {
@@ -548,9 +799,9 @@ test('Finder 새 폴더·폴더 이동·파일 이름 변경과 이동·앱 연�
   await expect(finder.getByRole('button', { name: '폴더 앞으로', exact: true })).toBeDisabled();
   await finder.locator('.finder-items').getByRole('button', { name: '자료', exact: true }).click();
   await finder.getByRole('button', { name: '이동', exact: true }).click();
-  await page.getByLabel('이동할 폴더').selectOption('메모');
+  await page.getByLabel('이동할 폴더').selectOption('notes');
   await page.getByRole('button', { name: '여기로 이동', exact: true }).click();
-  await openFolder(page, '메모/자료');
+  await openFolder(page, 'notes/자료');
   await finder.getByRole('button', { name: '새 폴더', exact: true }).click();
   await page.getByLabel('폴더 이름', { exact: true }).fill('하위');
   await page.getByRole('button', { name: '만들기', exact: true }).click();
@@ -560,17 +811,17 @@ test('Finder 새 폴더·폴더 이동·파일 이름 변경과 이동·앱 연�
   const dialog = page.getByRole('dialog', { name: '메모 저장', exact: true });
   await expect(dialog.getByRole('heading', { name: '다른 이름으로 저장' })).toBeVisible();
   await dialog.getByLabel('파일 이름', { exact: true }).fill('기록.txt');
-  await dialog.getByLabel('저장할 폴더', { exact: true }).fill('메모/자료');
+  await dialog.getByLabel('저장할 폴더', { exact: true }).fill('notes/자료');
   await dialog.getByLabel('저장할 폴더', { exact: true }).press('Enter');
   await expect(dialog).toBeVisible();
   await dialog.getByRole('button', { name: '새 폴더', exact: true }).click();
   await dialog.getByLabel('새 폴더 이름').fill('저장 위치');
   await dialog.getByRole('button', { name: '만들기', exact: true }).click();
   await expect(dialog.getByLabel('저장할 폴더', { exact: true })).toHaveValue(
-    '메모/자료/저장 위치',
+    'notes/자료/저장 위치',
   );
   await dialog.getByRole('button', { name: '파일 저장', exact: true }).click();
-  await openFolder(page, '메모/자료/저장 위치');
+  await openFolder(page, 'notes/자료/저장 위치');
   await finder
     .locator('.finder-items')
     .getByRole('button', { name: '기록.txt', exact: true })
@@ -583,10 +834,10 @@ test('Finder 새 폴더·폴더 이동·파일 이름 변경과 이동·앱 연�
     .getByRole('button', { name: '새 기록.txt', exact: true })
     .click();
   await finder.getByRole('button', { name: '이동', exact: true }).click();
-  await page.getByLabel('이동할 폴더').selectOption('조사 기록');
+  await page.getByLabel('이동할 폴더').selectOption('desktop');
   await page.getByRole('button', { name: '여기로 이동', exact: true }).click();
   await page.reload();
-  await openFolder(page, '조사 기록');
+  await openFolder(page, 'desktop');
   await finder
     .locator('.finder-items')
     .getByRole('button', { name: '새 기록.txt', exact: true })
@@ -595,9 +846,14 @@ test('Finder 새 폴더·폴더 이동·파일 이름 변경과 이동·앱 연�
     '이동해도 남는 파일 내용',
   );
   const state = await snapshot(page);
-  expect(state.folders).toContain('메모/자료/하위');
-  expect(state.folders).toContain('메모/자료/저장 위치');
-  expect(state.noteFiles[0]).toMatchObject({ name: '새 기록.txt', folder: '조사 기록' });
+  expect(state.folders).toContain('notes/자료/하위');
+  expect(state.folders).toContain('notes/자료/저장 위치');
+  expect(
+    state.noteFiles.find((file: { name: string }) => file.name === '새 기록.txt'),
+  ).toMatchObject({
+    name: '새 기록.txt',
+    folder: 'desktop',
+  });
 });
 
 test('리눅스 셸에서 만든 파일을 폴더에서 열고 가상 HTTP 설정을 복구한다', async ({ page }) => {

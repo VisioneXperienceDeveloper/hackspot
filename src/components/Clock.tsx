@@ -1,12 +1,20 @@
 import { useEffect, useState } from 'react';
+import type { ClockFormat } from '../game/settings';
 
-const timeFormat = new Intl.DateTimeFormat('ko-KR', {
-  hour: '2-digit',
-  minute: '2-digit',
-  hourCycle: 'h23',
-});
+const timeFormats: Record<ClockFormat, Intl.DateTimeFormat> = {
+  '24h': new Intl.DateTimeFormat('ko-KR', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }),
+  '12h': new Intl.DateTimeFormat('ko-KR', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hourCycle: 'h12',
+  }),
+};
 
-export function Clock() {
+export function Clock({ format = '24h' }: { format?: ClockFormat }) {
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
     const update = () => setNow(new Date());
@@ -18,7 +26,7 @@ export function Clock() {
     };
   }, []);
 
-  const time = timeFormat.format(now);
+  const time = timeFormats[format].format(now);
   return (
     <time
       dateTime={now.toISOString()}

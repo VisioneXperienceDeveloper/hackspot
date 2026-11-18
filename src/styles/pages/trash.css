@@ -1,0 +1,226 @@
+.trash-app {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: #0c1923;
+  color: #d3e0e8;
+}
+.trash-toolbar {
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 14px;
+  border-bottom: 1px solid #304754;
+  background: #142530;
+}
+.trash-toolbar > div {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.trash-toolbar-icon {
+  width: 31px;
+  height: 31px;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  background: #293d47;
+  color: #92b6c6;
+}
+.trash-toolbar b,
+.trash-toolbar small {
+  display: block;
+}
+.trash-toolbar b {
+  color: #e1ebef;
+  font-size: 12px;
+}
+.trash-toolbar small {
+  margin-top: 3px;
+  color: #91a5b1;
+  font-size: 9px;
+}
+.trash-toolbar button,
+.trash-row-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 9px;
+  border: 1px solid #3b5361;
+  border-radius: 5px;
+  background: #1a303d;
+  color: #c5d6df;
+  font-size: 9px;
+}
+.trash-toolbar button:hover:not(:disabled),
+.trash-row-actions button:hover {
+  border-color: #69899a;
+  background: #243f4d;
+}
+.trash-toolbar button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.trash-message {
+  margin: 0;
+  padding: 7px 14px;
+  border-bottom: 1px solid #304754;
+  background: #183229;
+  color: #b7e5cd;
+  font-size: 10px;
+}
+.trash-list {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+.trash-list-heading,
+.trash-row {
+  display: grid;
+  grid-template-columns: minmax(170px, 1.2fr) minmax(120px, 0.9fr) minmax(130px, 0.8fr) 150px;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 13px;
+}
+.trash-list-heading {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  border-bottom: 1px solid #304754;
+  background: #152732;
+  color: #8ea5b2;
+  font-size: 9px;
+}
+.trash-row {
+  min-height: 53px;
+  border-bottom: 1px solid #263d4a;
+  color: #c3d2db;
+  font-size: 9px;
+}
+.trash-row:hover {
+  background: #ffffff06;
+}
+.trash-item-name {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #86b5cc;
+}
+.trash-item-name > span {
+  min-width: 0;
+}
+.trash-item-name b,
+.trash-item-name small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.trash-item-name b {
+  color: #d9e5e9;
+  font-size: 10px;
+}
+.trash-item-name small {
+  margin-top: 3px;
+  color: #8ea3ad;
+  font-size: 8px;
+}
+.trash-original-path,
+.trash-deleted-date {
+  overflow: hidden;
+  color: #9aadb7;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.trash-row-actions {
+  display: flex;
+  gap: 5px;
+  justify-content: flex-end;
+}
+.trash-row-actions button {
+  padding: 6px 7px;
+}
+.trash-row-actions .trash-delete {
+  color: #e0a6a2;
+}
+.trash-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 11px;
+  padding: 25px;
+  color: #728b99;
+  text-align: center;
+}
+.trash-empty b {
+  color: #c8d8df;
+  font-size: 12px;
+}
+.trash-empty span {
+  max-width: 320px;
+  color: #8ea3ae;
+  font-size: 10px;
+  line-height: 1.7;
+}
+.trash-confirm-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: #02080dc9;
+}
+.trash-confirmation {
+  width: min(100%, 370px);
+  padding: 21px;
+  border: 1px solid #4b606c;
+  border-radius: 9px;
+  background: #14242e;
+  box-shadow: 0 16px 48px #0009;
+  color: #e0e9ed;
+}
+.trash-confirmation > svg {
+  color: #e1ae6f;
+}
+.trash-confirmation h2 {
+  margin: 11px 0 7px;
+  color: #f0f3f4;
+  font-size: 15px;
+}
+.trash-confirmation p {
+  margin: 0;
+  color: #adbec6;
+  font-size: 10px;
+  line-height: 1.7;
+}
+.trash-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 7px;
+  margin-top: 19px;
+}
+.trash-confirm-actions button {
+  padding: 8px 11px;
+  border: 1px solid #425864;
+  border-radius: 5px;
+  background: #203540;
+  color: #d2e0e5;
+  font-size: 10px;
+}
+.trash-confirm-actions .trash-confirm-delete {
+  border-color: #7a4847;
+  background: #713e3e;
+  color: #fff0ed;
+}
+.trash-confirm-actions .trash-confirm-delete:hover {
+  background: #8b4c49;
+}
