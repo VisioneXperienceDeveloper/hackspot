@@ -2,7 +2,7 @@
 
 현재 버전: **1.0.0**
 
-공개 주소 기본값: https://visionexexperiencedeveloper.github.io/hackspot/
+공개 주소 기본값: https://visionexperiencedeveloper.github.io/hackspot/
 
 메일, 가상 사이트, 터미널의 기록을 연결해 누락된 관측 기록을 조사하는 한국어 단일 사건 게임입니다. React UI와 순수 TypeScript 게임 엔진으로 구성됩니다. 실제 서버 접속·명령 실행·메일 전송은 없습니다.
 
@@ -124,7 +124,7 @@ Git 변경은 `main` 브랜치에서 관리하며 GitHub 원격 저장소에 게
 
 ## 출시 정보
 
-- 공개 도메인: https://visionexexperiencedeveloper.github.io/hackspot/
+- 공개 도메인: https://visionexperiencedeveloper.github.io/hackspot/
 - 판매 채널: itch.io를 기본값으로 사용하며 권장 가격은 미화 4달러입니다.
 - 문의처: `visionexperiencedeveloper@gmail.com`
 - GitHub 이슈: https://github.com/VisioneXperienceDeveloper/hackspot/issues
