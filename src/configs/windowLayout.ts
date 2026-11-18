@@ -66,7 +66,7 @@ export function initialWindows(onboarded = false): WindowState[] {
       id: 'mail',
       x: 110,
       y: 90,
-      width: Math.max(650, Math.min(900, w - 390)),
+      width: Math.min(650, Math.max(400, w - 390)),
       height: Math.max(400, h - 195),
       z: 3,
       minimized: false,

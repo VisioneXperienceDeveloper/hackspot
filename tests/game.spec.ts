@@ -67,8 +67,9 @@ test.beforeEach(async ({ page }) => {
   });
   page.on('requestfailed', (r) => found.push(r.url() + ': ' + r.failure()?.errorText));
   await page.goto('/');
-  await expect(page).toHaveTitle('잔향 — 사라진 11분');
+  await expect(page).toHaveTitle('Hackspot — 사라진 11분');
   await finishTutorial(page);
+  await open(page, '브라우저');
   await page.getByRole('button', { name: '브라우저 닫기', exact: true }).click();
   await open(page, '터미널');
   await open(page, '메일');

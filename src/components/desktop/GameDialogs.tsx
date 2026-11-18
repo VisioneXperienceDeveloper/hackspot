@@ -207,7 +207,7 @@ export function GameDialogs({
             </span>
           </div>
           <p className="muted">
-            ECHO / 잔향 · 첫 번째 사건을 마쳤습니다.
+            Hackspot · 첫 번째 사건을 마쳤습니다.
             <br />
             {saveEnabled && !saveFailed
               ? '현재 결말과 증거는 자동 저장됩니다.'

@@ -1,4 +1,8 @@
-# ECHO / 잔향 — 사라진 11분
+# Hackspot — 사라진 11분
+
+현재 버전: **1.0.0**
+
+공개 주소 기본값: https://visionexexperiencedeveloper.github.io/hackspot/
 
 메일, 가상 사이트, 터미널의 기록을 연결해 누락된 관측 기록을 조사하는 한국어 단일 사건 게임입니다. React UI와 순수 TypeScript 게임 엔진으로 구성됩니다. 실제 서버 접속·명령 실행·메일 전송은 없습니다.
 
@@ -117,3 +121,18 @@ npm audit
 현재 v1의 정상 저장은 그대로 읽습니다. 향후 저장 형식을 바꾸면 별도 버전과 명시적 migration을 추가하고 기존 진행 샘플로 테스트해야 합니다. 미래 버전을 현재 버전으로 추정 변환하거나 손상된 저장을 자동 삭제하지 않습니다.
 
 Git 변경은 `main` 브랜치에서 관리하며 GitHub 원격 저장소에 게시합니다. `.gitignore`는 빌드, 의존성, 테스트 결과, 환경 파일을 제외합니다. `.github/workflows/check.yml`은 push/PR 시 정적·브라우저·호스팅 검사를 실행하도록 구성되어 있습니다.
+
+## 출시 정보
+
+- 공개 도메인: https://visionexexperiencedeveloper.github.io/hackspot/
+- 판매 채널: itch.io를 기본값으로 사용하며 권장 가격은 미화 4달러입니다.
+- 문의처: `visionexperiencedeveloper@gmail.com`
+- GitHub 이슈: https://github.com/VisioneXperienceDeveloper/hackspot/issues
+- 저작권 및 라이선스: [LICENSE](LICENSE), 현재는 All rights reserved입니다.
+- 개인정보 안내: [PRIVACY.md](PRIVACY.md)
+- itch.io 등록 문구 초안: [docs/store-listing.md](docs/store-listing.md)
+- 등록용 스크린샷: [public/screenshots/](public/screenshots/)
+
+GitHub Pages 배포는 `.github/workflows/pages.yml`을 사용합니다. 저장소의 **Settings > Pages > Build and deployment > Source**를 **GitHub Actions**로 설정한 뒤 `main`에 푸시하거나 workflow를 직접 실행합니다.
+
+`dist/`를 itch.io에 업로드하려면 ZIP 압축 후 itch.io 프로젝트의 **HTML** 분류에 등록하고, 모든 압로드 파일이 ZIP 루트에 있는지 확인합니다. 게임 프레임 크기와 전체 화면 옵션은 itch.io 등록 화면에서 설정합니다.

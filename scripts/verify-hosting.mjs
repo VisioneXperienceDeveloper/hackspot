@@ -30,6 +30,40 @@ const server = createServer(async (req, res) => {
 });
 await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
 const browser = await chromium.launch();
+async function openApp(page, name) {
+  const running = page
+    .getByRole('navigation', { name: '작업 표시줄' })
+    .getByRole('button', { name, exact: true });
+  if (await running.count()) {
+    await running.click();
+  } else {
+    await page.getByRole('button', { name: '앱 및 파일 검색', exact: true }).click();
+    await page.getByRole('combobox', { name: '앱 및 파일 검색어' }).fill(name);
+    await page.getByRole('group', { name: '설치된 앱', exact: true }).getByRole('option').click();
+  }
+}
+async function finishSetup(page) {
+  await openApp(page, '메일');
+  const email = page.getByLabel('메일 주소');
+  if (await email.count()) {
+    await email.fill('nightowl');
+    await page.getByRole('button', { name: '계정 만들기', exact: true }).click();
+    await openApp(page, '브라우저');
+    await page
+      .getByRole('region', { name: '브라우저 창', exact: true })
+      .locator('.site-directory')
+      .getByRole('button', { name: /VAULT BANK/ })
+      .click();
+    await page.getByRole('button', { name: '새 계좌 개설', exact: true }).click();
+    await page.getByRole('checkbox').check();
+    await page.getByRole('button', { name: '계좌 개설하기', exact: true }).click();
+  }
+  await openApp(page, '메일');
+  const startButton = page
+    .getByRole('region', { name: '메일 창', exact: true })
+    .getByRole('button', { name: '조사 시작', exact: true });
+  if (await startButton.count()) await startButton.click();
+}
 try {
   const base = `http://127.0.0.1:${server.address().port}`;
   for (const path of ['/', '/nested/']) {
@@ -42,7 +76,7 @@ try {
       if (r.url().endsWith('/ocean.png')) assets.push(r.url());
     });
     await page.goto(base + path);
-    await page.getByRole('button', { name: '조사 시작', exact: true }).click();
+    await finishSetup(page);
     await page.getByRole('button', { name: '앱 및 파일 검색', exact: true }).click();
     await page.getByRole('combobox', { name: '앱 및 파일 검색어' }).fill('메모장');
     await page.getByRole('combobox', { name: '앱 및 파일 검색어' }).press('Enter');
@@ -59,19 +93,17 @@ try {
       await page.getByRole('textbox', { name: '개인 메모' }).inputValue(),
       '하위 경로에서도 진행 복구',
     );
-    assert.deepEqual(
-      await page.evaluate(() => {
-        const files = JSON.parse(localStorage.getItem('echo-investigation-v1')).noteFiles;
-        return files.map(({ name, folder, content }) => ({ name, folder, content }));
-      }),
-      [
-        {
-          name: '하위 경로 메모.txt',
-          folder: '조사 기록/해온',
-          content: '하위 경로에서도 진행 복구',
-        },
-      ],
-    );
+    const savedNote = await page.evaluate(() => {
+      const files = JSON.parse(localStorage.getItem('echo-investigation-v1')).noteFiles;
+      return files
+        .map(({ name, folder, content }) => ({ name, folder, content }))
+        .find(({ name }) => name === '하위 경로 메모.txt');
+    });
+    assert.deepEqual(savedNote, {
+      name: '하위 경로 메모.txt',
+      folder: '조사 기록/해온',
+      content: '하위 경로에서도 진행 복구',
+    });
     await page.waitForLoadState('networkidle');
     assert.ok(assets.length > 0);
     assert.deepEqual(errors, []);
