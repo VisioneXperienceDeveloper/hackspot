@@ -6,11 +6,29 @@ import type { ShellFS } from './shell/filesystem';
 import { commandUsage, helpTopics, investigationCommands } from './shell/manual';
 import { initialShell, type ShellState } from './shell/state';
 export { comparison } from './world';
-import { DEFAULT_FOLDERS, type NoteFile, type FileLocations } from './noteFiles';
+import {
+  DEFAULT_FOLDERS,
+  type DesktopFileId,
+  type FileLocations,
+  type NoteFile,
+} from './noteFiles';
+import type { TrashEntry } from './desktopFiles';
+import { DEFAULT_SYSTEM_FILES } from './systemFiles';
+import {
+  initialOnboarding,
+  emailForHandle,
+  accountNumber,
+  creditReward,
+  type Onboarding,
+  type BankAccount,
+} from './account';
 export const MAX_COMMAND_LENGTH = 512;
 export type Ending = 'review' | 'public';
 export interface GameState {
   version: 1;
+  onboarding: Onboarding;
+  bank: BankAccount | null;
+  bookmarks: string[];
   accepted: boolean;
   visited: string[];
   resolved: string[];
@@ -27,12 +45,17 @@ export interface GameState {
   noteFiles: NoteFile[];
   folders: string[];
   fileLocations: FileLocations;
+  trash: TrashEntry[];
+  deletedFiles: DesktopFileId[];
   shell: ShellState;
   terminal: { input: string; output: string; prompt?: string }[];
   history: string[];
 }
 export const initialState = (): GameState => ({
   version: 1,
+  onboarding: initialOnboarding(),
+  bank: null,
+  bookmarks: [],
   accepted: false,
   visited: [],
   resolved: [],
@@ -46,9 +69,11 @@ export const initialState = (): GameState => ({
   attempts: 0,
   log: [],
   notes: '',
-  noteFiles: [],
+  noteFiles: DEFAULT_SYSTEM_FILES.map((file) => ({ ...file })),
   folders: [...DEFAULT_FOLDERS],
   fileLocations: {},
+  trash: [],
+  deletedFiles: [],
   shell: initialShell(),
   terminal: [],
   history: [],
@@ -74,20 +99,58 @@ export function currentObjective(s: GameState) {
   return objectives[i < 0 ? 4 : i];
 }
 export type Action =
+  | { type: 'create-email'; handle: string }
+  | { type: 'open-bank-account' }
+  | { type: 'complete-tutorial' }
+  | { type: 'read-case-mail' }
   | { type: 'accept' }
   | { type: 'visit'; url: string }
   | { type: 'hint' }
   | { type: 'notes'; text: string };
 export function reduce(s: GameState, a: Action): GameState {
+  if (a.type === 'create-email') {
+    const email = emailForHandle(a.handle);
+    if (s.onboarding.email || !email) return s;
+    return event({ ...s, onboarding: { ...s.onboarding, email } }, `메일 생성 · ${email}`);
+  }
+  if (a.type === 'open-bank-account') {
+    if (!s.onboarding.email || s.bank) return s;
+    const bank: BankAccount = { number: accountNumber(s.onboarding.email), transactions: [] };
+    return event(
+      { ...s, bank: s.ending ? creditReward(bank, 'case-01') : bank },
+      'VAULT BANK 사례금 수령 계좌를 개설했습니다.',
+    );
+  }
+  if (a.type === 'complete-tutorial') {
+    if (!s.onboarding.email || !s.bank || s.onboarding.completed) return s;
+    return event(
+      { ...s, onboarding: { ...s.onboarding, completed: true } },
+      '활동 준비 완료 · 사건 메일이 도착했습니다.',
+    );
+  }
+  if (a.type === 'read-case-mail')
+    return !s.onboarding.completed || s.onboarding.caseMailRead
+      ? s
+      : { ...s, onboarding: { ...s.onboarding, caseMailRead: true } };
   if (a.type === 'accept')
-    return s.accepted ? s : event({ ...s, accepted: true }, '윤서진의 조사 의뢰를 수락했습니다.');
+    return s.accepted || !s.onboarding.completed
+      ? s
+      : event(
+          {
+            ...s,
+            accepted: true,
+            onboarding: { ...s.onboarding, caseMailRead: true },
+          },
+          '윤서진의 조사 의뢰를 수락했습니다.',
+        );
   if (a.type === 'notes') return { ...s, notes: a.text.slice(0, 10000) };
   if (a.type === 'hint') {
-    if (s.ending) return s;
+    if (s.ending || !s.onboarding.completed) return s;
     const key = currentObjective(s).id;
     return { ...s, hints: { ...s.hints, [key]: Math.min(3, (s.hints[key] || 0) + 1) } };
   }
   if (a.type === 'visit') {
+    if (!s.onboarding.completed) return s;
     const page = getPage(a.url);
     if (!page) return s;
     return event(
@@ -114,6 +177,8 @@ function investigate(fs: ShellFS, cmd: string, args: string[]): CommandResult {
   const s = fs.state;
   const fail = (error: string, code = 1): CommandResult => ({ out: '', error, code });
   const invalid = () => fail(commandUsage(cmd), 2);
+  if (!s.onboarding.completed)
+    return fail('상단 현황판에서 활동 준비를 마친 뒤 조사 의뢰를 수락하세요.');
   if (!s.accepted)
     return fail('먼저 메일에서 조사 의뢰를 수락하세요. help 조사로 명령을 확인할 수 있습니다.');
   if (cmd === 'resolve' || cmd === 'scan' || cmd === 'connect') {
@@ -318,6 +383,8 @@ export interface Submission {
   route: Ending;
 }
 export function submit(s: GameState, form: Submission): { state: GameState; error: string } {
+  if (!s.onboarding.completed || !s.bank)
+    return { state: s, error: '상단 현황판에서 메일과 사례금 수령 계좌 준비를 마쳐 주세요.' };
   if (s.ending)
     return { state: s, error: '이미 조사를 마쳤습니다. 결말 화면에서 결과를 확인하세요.' };
   if (!s.accepted || s.evidence.length !== 3 || !s.compared)
@@ -332,7 +399,7 @@ export function submit(s: GameState, form: Submission): { state: GameState; erro
     };
   return {
     state: event(
-      { ...s, ending: form.route },
+      { ...s, ending: form.route, bank: creditReward(s.bank, 'case-01') },
       `조사 완료 · ${form.route === 'review' ? '독립 검증 기관 제출' : '시민 공개'}`,
     ),
     error: '',

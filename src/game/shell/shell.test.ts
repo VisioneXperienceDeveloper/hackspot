@@ -1,3 +1,4 @@
+import { preparedGame } from '../testFixtures';
 import { describe, expect, it } from 'vitest';
 import { desktopFiles } from '../desktopFiles';
 import { commands, execute, initialState, reduce, suggestions } from '../engine';
@@ -80,11 +81,11 @@ describe('Hackspot shell', () => {
     expect(run('ip addr add 192.168.50.10/24 dev eth0')).toContain('Operation not permitted');
     expect(run('serve 80')).toContain('Operation not permitted');
     expect(run('su root; whoami')).toMatch(/analyst\n$/);
-    run('cd ~/메모; export LABEL=analyst');
+    run('cd ~/notes; export LABEL=analyst');
     expect(run('sudo su root')).toBe('');
-    expect(state.terminal.at(-1)?.prompt).toBe('analyst@hackspot:~/메모$');
+    expect(state.terminal.at(-1)?.prompt).toBe('analyst@hackspot:~/notes$');
     expect(run('whoami; id -u; echo "$HOME"')).toBe('root\n0\n/root\n');
-    expect(state.terminal.at(-1)?.prompt).toBe('root@hackspot:/home/analyst/메모#');
+    expect(state.terminal.at(-1)?.prompt).toBe('root@hackspot:/home/analyst/notes#');
     expect(run('cd ~; pwd')).toBe('/root\n');
     expect(run('ip addr add 192.168.50.10/24 dev eth0')).toBe('');
     expect(run('serve 80 /home/analyst')).toContain('Serving HTTP');
@@ -92,7 +93,7 @@ describe('Hackspot shell', () => {
     expect(saved.shell.rootSession).toBeUndefined();
     expect(saved.shell.addresses).toContain('192.168.50.10/24');
     run('export LABEL=root; exit');
-    expect(run('whoami; pwd; echo "$LABEL"')).toBe('analyst\n/home/analyst/메모\nanalyst\n');
+    expect(run('whoami; pwd; echo "$LABEL"')).toBe('analyst\n/home/analyst/notes\nanalyst\n');
     expect(run('stop 80')).toContain('Operation not permitted');
   });
 
@@ -132,8 +133,8 @@ describe('Hackspot shell', () => {
 
   it('가상 SSH와 cat이 조사 서버의 읽기 전용 경계와 진행 기록을 보존한다', () => {
     const [server] = servers;
-    let state = reduce(initialState(), { type: 'accept' });
-    state = execute(state, 'echo local > 증거/revision.log').state;
+    let state = reduce(preparedGame(), { type: 'accept' });
+    state = execute(state, 'echo local > downloads/revision.log').state;
     const result = execute(
       state,
       'ssh ' + server.user + '@' + server.domain + ' ' + server.password,
@@ -148,7 +149,7 @@ describe('Hackspot shell', () => {
     const blocked = execute(state, 'echo overwrite > /audit/revision.log');
     expect(blocked.output).toContain('Read-only file system');
     expect(blocked.state.noteFiles).toEqual(state.noteFiles);
-    expect(desktopFiles(blocked.state)).toEqual([
+    expect(desktopFiles(blocked.state).filter((file) => file.folder === 'downloads')).toEqual([
       expect.objectContaining({ id: 'revision', name: 'revision (2).log', readOnly: true }),
       expect.objectContaining({ name: 'revision.log', content: 'local\n' }),
     ]);

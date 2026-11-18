@@ -1,3 +1,4 @@
+import { preparedGame } from './testFixtures';
 import { describe, it, expect } from 'vitest';
 import {
   initialState,
@@ -11,7 +12,7 @@ import {
 import { decodeSave } from './storage';
 const cmd = (s: GameState, c: string) => execute(s, c).state;
 function play() {
-  let s = reduce(initialState(), { type: 'accept' });
+  let s = reduce(preparedGame(), { type: 'accept' });
   for (const url of ['haeon.test/report', 'haeon.test/notice', 'tide.test/handover'])
     s = reduce(s, { type: 'visit', url });
   for (const c of [
@@ -53,7 +54,7 @@ describe('사건 상태와 세계', () => {
   it('선행 조건, 미등록 대상과 실제 주소를 거부한다', () => {
     let s = initialState();
     expect(execute(s, 'connect 10.17.0.11 auditor MORA-1017').output).toContain('수락');
-    s = reduce(s, { type: 'accept' });
+    s = reduce(preparedGame(s), { type: 'accept' });
     expect(execute(s, 'connect 10.17.0.11 auditor MORA-1017').state.session).toBe(null);
     expect(execute(s, 'resolve google.com').state.resolved).toEqual([]);
     expect(execute(s, 'collect /original/sensor.csv').state.evidence).toEqual([]);
@@ -89,10 +90,10 @@ describe('사건 상태와 세계', () => {
     expect(cmd(s, 'clear').evidence.length).toBe(3);
   });
   it('힌트는 현재 단계별 세 번까지만 공개한다', () => {
-    let s = initialState();
+    let s = preparedGame();
     for (let i = 0; i < 8; i++) s = reduce(s, { type: 'hint' });
     expect(s.hints.accept).toBe(3);
-    s = reduce(s, { type: 'accept' });
+    s = reduce(preparedGame(s), { type: 'accept' });
     s = reduce(s, { type: 'hint' });
     expect(s.hints.research).toBe(1);
   });
@@ -189,7 +190,7 @@ describe('안정성 회귀', () => {
 });
 
 it('참고 문서 collect 실패는 단서 열람으로 처리하지 않는다', () => {
-  let s = reduce(initialState(), { type: 'accept' });
+  let s = reduce(preparedGame(), { type: 'accept' });
   for (const c of ['resolve haeon.test', 'scan haeon.test', 'connect haeon.test auditor MORA-1017'])
     s = cmd(s, c);
   s = cmd(s, 'collect /audit/transfer.txt');

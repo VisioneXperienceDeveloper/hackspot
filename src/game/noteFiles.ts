@@ -12,7 +12,7 @@ export interface FileLocation {
 export type StaticFileId = 'revision' | 'raw' | 'approval' | 'comparison';
 export type DesktopFileId = StaticFileId | `note:${string}`;
 export type FileLocations = Partial<Record<StaticFileId, FileLocation>>;
-export const DEFAULT_FOLDERS = ['증거', '메모', '조사 기록'];
+export const DEFAULT_FOLDERS = ['desktop', 'downloads', 'config', 'notes'];
 
 export const validFileName = (name: string) =>
   name.length > 0 &&
@@ -62,7 +62,7 @@ export function validFileLocations(value: unknown): value is FileLocations {
 }
 
 export function validNoteFiles(value: unknown): value is NoteFile[] {
-  if (!Array.isArray(value) || value.length > 100) return false;
+  if (!Array.isArray(value) || value.length > 102) return false;
   const ids = new Set<string>();
   const paths = new Set<string>();
   return value.every((item: unknown) => {

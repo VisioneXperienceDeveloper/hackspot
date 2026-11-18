@@ -65,7 +65,7 @@ const manuals: Record<string, Manual> = {
       '-L, -P — 가상 파일 시스템에는 심볼릭 링크가 없어 같은 방식으로 이동합니다.',
     ],
     note: '경로를 생략하거나 ~를 입력하면 홈 폴더로 이동합니다. ..은 상위 폴더입니다.',
-    example: 'cd ~/메모',
+    example: 'cd ~/notes',
   },
   mkdir: {
     summary: '새 폴더를 만듭니다.',
@@ -86,7 +86,7 @@ const manuals: Record<string, Manual> = {
     summary: '빈 파일을 만들거나 기존 파일의 수정 시각을 갱신합니다.',
     usage: '[-c] 파일 ...',
     options: ['-c, --no-create — 파일이 이미 있을 때만 수정 시각을 갱신합니다.'],
-    example: 'touch ~/메모/기록.txt',
+    example: 'touch ~/notes/기록.txt',
   },
   cp: {
     summary: '파일이나 폴더를 복사합니다.',
@@ -99,7 +99,7 @@ const manuals: Record<string, Manual> = {
       '-v, --verbose — 원본과 대상 경로를 표시합니다.',
     ],
     note: '원본을 여러 개 지정할 때 대상은 기존 폴더여야 합니다.',
-    example: 'cp -nv 기록.txt ~/메모/',
+    example: 'cp -nv 기록.txt ~/notes/',
   },
   mv: {
     summary: '파일이나 폴더를 옮기거나 이름을 바꿉니다.',
@@ -131,7 +131,7 @@ const manuals: Record<string, Manual> = {
       '-maxdepth N / -mindepth N — 탐색할 최대 깊이 또는 출력할 최소 깊이를 지정합니다.',
       '-print — 찾은 경로를 출력합니다. 기본 동작과 같습니다.',
     ],
-    example: "find ~/메모 -type f -iname '*.txt'",
+    example: "find ~/notes -type f -iname '*.txt'",
   },
   tree: {
     summary: '폴더 구조를 트리로 표시합니다.',
@@ -157,7 +157,7 @@ const manuals: Record<string, Manual> = {
       '-a, --all — 개별 파일의 크기도 표시합니다.',
       '-k — 1024바이트 단위로 표시합니다. 기본값과 같습니다.',
     ],
-    example: 'du -sh ~/메모',
+    example: 'du -sh ~/notes',
   },
   file: {
     summary: '경로가 폴더, 빈 파일, UTF-8 텍스트 중 무엇인지 확인합니다.',
@@ -167,12 +167,12 @@ const manuals: Record<string, Manual> = {
   basename: {
     summary: '경로 끝의 이름을 추출합니다.',
     usage: '경로 [제거할 접미사]',
-    example: 'basename ~/메모/기록.txt .txt',
+    example: 'basename ~/notes/기록.txt .txt',
   },
   dirname: {
     summary: '경로에서 마지막 이름을 빼고 상위 경로를 표시합니다.',
     usage: '경로',
-    example: 'dirname ~/메모/기록.txt',
+    example: 'dirname ~/notes/기록.txt',
   },
   realpath: {
     summary: '상대 경로를 정리해 절대 경로로 표시합니다.',
@@ -406,7 +406,7 @@ const manuals: Record<string, Manual> = {
     summary: '조건을 확인해 참이면 종료 상태 0, 거짓이면 1을 반환합니다.',
     usage: '조건',
     options: testOperators,
-    example: 'test -d ~/메모 && echo found',
+    example: 'test -d ~/notes && echo found',
   },
   '[': {
     summary: 'test와 같은 조건 검사를 대괄호 형식으로 실행합니다.',

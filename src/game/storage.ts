@@ -1,6 +1,8 @@
 import { initialState, type GameState } from './engine';
 import { evidenceInfo, objectives, servers, sites } from './world';
 import { decodeShell } from './shell/state';
+import { decodeAccount } from './account';
+import { validDeletedFiles, validTrashEntries } from './desktopFiles';
 import {
   validNoteFiles,
   validFolders,
@@ -8,6 +10,7 @@ import {
   withFolderAncestors,
   DEFAULT_FOLDERS,
 } from './noteFiles';
+import { DEFAULT_SYSTEM_FILES } from './systemFiles';
 
 export const SAVE_KEY = 'echo-investigation-v1';
 export const MAX_SAVE_LENGTH = 4_000_000;
@@ -17,6 +20,21 @@ const strings = (x: unknown, max: number, length: number): x is string[] =>
   Array.isArray(x) &&
   x.length <= max &&
   x.every((v) => typeof v === 'string' && v.length <= length);
+const validBookmarks = (x: unknown): x is string[] =>
+  strings(x, 100, 512) &&
+  new Set(x).size === x.length &&
+  x.every((bookmark) => bookmark.length > 0 && bookmark === bookmark.trim());
+const legacyFolderNames: Record<string, string> = {
+  증거: 'downloads',
+  메모: 'notes',
+  '조사 기록': 'desktop',
+};
+const migrateFolder = (folder: string) => {
+  const separator = folder.indexOf('/');
+  const root = separator < 0 ? folder : folder.slice(0, separator);
+  const replacement = legacyFolderNames[root];
+  return replacement ? replacement + (separator < 0 ? '' : folder.slice(separator)) : folder;
+};
 function identifiers(x: unknown, allowed: string[]): x is string[] {
   return (
     strings(x, allowed.length, 200) &&
@@ -29,6 +47,8 @@ export function decodeSave(raw: string): GameState {
   const x: unknown = JSON.parse(raw);
   if (!record(x)) throw Error('손상된 저장 파일');
   const files = servers.flatMap((s) => s.files.map((f) => s.ip + f.path));
+  const trash = x.trash ?? [];
+  const deletedFiles = x.deletedFiles ?? [];
   if (
     x.version !== 1 ||
     typeof x.accepted !== 'boolean' ||
@@ -51,9 +71,12 @@ export function decodeSave(raw: string): GameState {
     !strings(x.history, 100, 12000) ||
     typeof x.notes !== 'string' ||
     x.notes.length > 10000 ||
+    (x.bookmarks !== undefined && !validBookmarks(x.bookmarks)) ||
     (x.noteFiles !== undefined && !validNoteFiles(x.noteFiles)) ||
     (x.folders !== undefined && !validFolders(x.folders)) ||
     (x.fileLocations !== undefined && !validFileLocations(x.fileLocations)) ||
+    !validTrashEntries(trash) ||
+    !validDeletedFiles(deletedFiles) ||
     !Array.isArray(x.terminal) ||
     x.terminal.length > 160 ||
     !x.terminal.every(
@@ -82,22 +105,57 @@ export function decodeSave(raw: string): GameState {
   )
     throw Error('지원하지 않거나 손상된 저장 파일');
   const s = x as unknown as GameState;
-  const folders =
-    s.folders ??
-    withFolderAncestors(DEFAULT_FOLDERS, [
-      ...(s.noteFiles ?? []).map((file) => file.folder),
-      ...Object.values(s.fileLocations ?? {}).map((location) => location.folder),
-    ]);
+  const savedNoteFiles = (s.noteFiles ?? []).map((file) => ({
+    ...file,
+    folder: migrateFolder(file.folder),
+  }));
+  const hiddenSystemFiles = new Set([
+    ...deletedFiles,
+    ...trash.flatMap((entry) => entry.files.map((file) => file.id)),
+  ]);
+  const noteFiles = [
+    ...DEFAULT_SYSTEM_FILES.filter(
+      (systemFile) =>
+        !hiddenSystemFiles.has(`note:${systemFile.id}`) &&
+        !savedNoteFiles.some(
+          (file) =>
+            file.id === systemFile.id ||
+            (file.folder === systemFile.folder && file.name === systemFile.name),
+        ),
+    ).map((file) => ({ ...file })),
+    ...savedNoteFiles,
+  ];
+  const fileLocations = Object.fromEntries(
+    Object.entries(s.fileLocations ?? {}).map(([id, location]) => [
+      id,
+      { ...location, folder: migrateFolder(location.folder) },
+    ]),
+  );
+  const savedFolders = s.folders?.map(migrateFolder) ?? [];
+  const hasLegacyFolders =
+    s.folders?.some((folder) => Object.hasOwn(legacyFolderNames, folder.split('/')[0])) ?? false;
+  const folders = withFolderAncestors(
+    [...(!s.folders || hasLegacyFolders ? DEFAULT_FOLDERS : []), ...savedFolders],
+    s.folders
+      ? []
+      : [
+          ...noteFiles.map((file) => file.folder),
+          ...Object.values(fileLocations).map((location) => location.folder),
+        ],
+  );
+  if (new Set(noteFiles.map((file) => `${file.folder}/${file.name}`)).size !== noteFiles.length)
+    throw Error('폴더 이름 변경 후 메모 파일 경로가 중복됩니다.');
+  if (!validNoteFiles(noteFiles)) throw Error('기본 파일 또는 메모 파일이 올바르지 않습니다.');
   if (
     !validFolders(folders) ||
-    [...(s.noteFiles ?? []), ...Object.values(s.fileLocations ?? {})].some(
+    [...noteFiles, ...Object.values(fileLocations)].some(
       (file) => file.folder && !folders.includes(file.folder),
     )
   )
     throw Error('파일의 저장 폴더가 올바르지 않습니다.');
   if (
     [...s.evidence, ...(s.compared ? (['comparison'] as const) : [])].some((id) => {
-      const folder = s.fileLocations?.[id]?.folder ?? '증거';
+      const folder = fileLocations[id]?.folder ?? 'downloads';
       return folder && !folders.includes(folder);
     })
   )
@@ -129,6 +187,8 @@ export function decodeSave(raw: string): GameState {
   // Only copy schema fields. Unknown keys never enter application state.
   return {
     version: 1,
+    ...decodeAccount(x.onboarding, x.bank, s.ending !== null),
+    bookmarks: s.bookmarks ?? [],
     accepted: s.accepted,
     visited: s.visited,
     resolved: s.resolved,
@@ -145,18 +205,14 @@ export function decodeSave(raw: string): GameState {
     shell: decodeShell(x.shell),
     folders: [...folders],
     fileLocations: Object.fromEntries(
-      Object.entries(s.fileLocations ?? {}).map(([id, location]) => [
+      Object.entries(fileLocations).map(([id, location]) => [
         id,
         { name: location.name, folder: location.folder },
       ]),
     ),
-    noteFiles: (s.noteFiles ?? []).map(({ id, name, folder, content, updatedAt }) => ({
-      id,
-      name,
-      folder,
-      content,
-      updatedAt,
-    })),
+    noteFiles,
+    trash: [...trash],
+    deletedFiles: [...deletedFiles],
     terminal: s.terminal
       .filter(({ input }) => input)
       .map(({ input, output, prompt }) => ({

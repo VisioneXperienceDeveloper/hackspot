@@ -217,22 +217,35 @@ export const sites: Site[] = [
   },
 ];
 export const objectives = [
-  { id: 'accept', label: '의뢰 확인', detail: '윤서진이 남긴 메일을 읽으세요.' },
+  {
+    id: 'accept',
+    label: '의뢰 확인',
+    detail: '윤서진이 남긴 메일을 읽으세요.',
+    hint: '메일 앱에서 윤서진의 의뢰 메일을 열고 「조사 시작」을 누르세요.',
+  },
   {
     id: 'research',
     label: '공개 자료 조사',
     detail: '공개 보고서와 두 곳의 인계 단서를 연결하세요.',
+    hint: '브라우저에서 haeon.test와 tide.test를 열어 공지, 교대 기록, 공개 보고서를 읽으세요.',
   },
   {
     id: 'evidence',
     label: '원본 기록 확보',
     detail: '수정 이력, 센서 원본, 승인 메시지를 보관하세요.',
+    hint: '터미널에서 서버를 조사하고 인계 메모를 따라 원본 기록을 collect 하세요.',
   },
-  { id: 'compare', label: '증거 대조', detail: '세 기록을 공개 보고서와 대조하세요.' },
+  {
+    id: 'compare',
+    label: '증거 대조',
+    detail: '세 기록을 공개 보고서와 대조하세요.',
+    hint: '증거 세 개를 모두 보관한 뒤 터미널에서 compare를 실행하세요.',
+  },
   {
     id: 'submit',
     label: '조사 결과 제출',
     detail: '사실과 책임자를 판단하고 전달 경로를 선택하세요.',
+    hint: '메일 앱에서 「조사 결과 제출」을 열고 확보한 증거와 대조표를 확인해 제출하세요.',
   },
 ] as const;
 export const hints: Record<string, string[]> = {
